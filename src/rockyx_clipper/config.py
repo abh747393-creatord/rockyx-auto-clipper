@@ -9,7 +9,7 @@ import os
 import shutil
 from pathlib import Path
 
-VERSION = "0.1.1"
+VERSION = "0.1.3"
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 SRC_DIR = ROOT / "src" / "rockyx_clipper"
@@ -17,7 +17,47 @@ MODELS_DIR = ROOT / "models"
 PROMPTS_DIR = ROOT / "prompts"
 OUTPUT_DIR = ROOT / "output"
 JOBS_DIR = ROOT / "jobs"
+FONTS_DIR = ROOT / "fonts"
 YUNET_MODEL = MODELS_DIR / "yunet_2023mar.onnx"
+
+# Bundled caption fonts — 22 free OFL Google Fonts, shipped in fonts/ so they
+# work on any machine with no install. Key = the ASS font name (the TTF's
+# nameID 1, exactly what libass matches); value = the file in fonts/.
+# libass finds them via the subtitles filter's fontsdir (see render.py).
+FONTS = {
+    "Montserrat ExtraBold": "montserrat.ttf",
+    "Poppins": "poppins.ttf",
+    "Bebas Neue": "bebas-neue.ttf",
+    "Anton": "anton.ttf",
+    "Oswald SemiBold": "oswald.ttf",
+    "Archivo Black": "archivo-black.ttf",
+    "Roboto Black": "roboto.ttf",
+    "Inter ExtraBold": "inter.ttf",
+    "Open Sans ExtraBold": "open-sans.ttf",
+    "Lato Black": "lato.ttf",
+    "Nunito ExtraBold": "nunito.ttf",
+    "Quicksand": "quicksand.ttf",
+    "Fredoka SemiBold": "fredoka.ttf",
+    "Baloo 2 ExtraBold": "baloo-2.ttf",
+    "Luckiest Guy": "luckiest-guy.ttf",
+    "Bangers": "bangers.ttf",
+    "Titan One": "titan-one.ttf",
+    "Alfa Slab One": "alfa-slab-one.ttf",
+    "Bungee": "bungee.ttf",
+    "Righteous": "righteous.ttf",
+    "Russo One": "russo-one.ttf",
+    "Permanent Marker": "permanent-marker.ttf",
+}
+FONT_GROUPS = [
+    ("Popular", ["Montserrat ExtraBold", "Poppins", "Bebas Neue", "Anton",
+                 "Oswald SemiBold", "Archivo Black"]),
+    ("Bold & heavy", ["Roboto Black", "Inter ExtraBold", "Open Sans ExtraBold",
+                      "Lato Black"]),
+    ("Rounded & friendly", ["Nunito ExtraBold", "Quicksand", "Fredoka SemiBold",
+                            "Baloo 2 ExtraBold"]),
+    ("Fun & display", ["Luckiest Guy", "Bangers", "Titan One", "Alfa Slab One",
+                       "Bungee", "Righteous", "Russo One", "Permanent Marker"]),
+]
 
 # Whisper model: "base" is multilingual, "base.en" is English-only and faster.
 # On CPU-only machines base/small are the sane choices; "small" is ~2x slower.

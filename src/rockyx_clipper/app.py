@@ -15,6 +15,7 @@ from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 from . import config
+from . import settings as settings_mod
 from .pipeline import retrim_clip, run_job
 
 ROOT = config.ROOT
@@ -39,6 +40,10 @@ def _friendly_error(exc: Exception) -> tuple[str, str]:
     if "video unavailable" in low or "private video" in low:
         return ("That YouTube video cannot be downloaded (unavailable or private). "
                 "Check the link, or upload the video file instead.", raw[-800:])
+    if "certificate" in low or "ssl" in low:
+        return ("This network is blocking YouTube's security check (certificate error) — "
+                "the video itself is fine. Try again on another network, or upload the "
+                "video file instead — local files always work.", raw[-800:])
     if "no video stream" in low:
         return ("The source has no video stream — pick a different video.", raw[-800:])
     if "no audio stream" in low:
@@ -107,6 +112,49 @@ def health():
     }
 
 
+@app.get("/api/settings")
+def get_settings():
+    """AI settings status. The key itself is NEVER returned, only a mask."""
+    return settings_mod.public_status()
+
+
+@app.post("/api/settings")
+def save_settings(payload: dict):
+    """Save the Gemini API key and/or default scorer.
+
+    Send {"gemini_api_key": "<key>"} to save, {"gemini_api_key": ""} to clear,
+    {"scorer": "auto"|"gemini"|"heuristic"|"local-ml"} to change the default.
+    The key is stored only on this machine (~/.rockyx/settings.json).
+    """
+    try:
+        if "gemini_api_key" in payload:
+            settings_mod.save_settings(gemini_api_key=str(payload.get("gemini_api_key") or ""))
+        if "scorer" in payload:
+            settings_mod.save_settings(scorer=str(payload.get("scorer") or "auto"))
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    return settings_mod.public_status()
+
+
+@app.post("/api/settings/test")
+def test_settings():
+    """One tiny Gemini call to check the saved key works. Returns OK or a
+    plain-language error; the key is never echoed back."""
+    from . import gemini_client
+    try:
+        reply = gemini_client.probe()
+    except Exception as exc:  # noqa: BLE001 - surfaced as a plain message
+        return {"ok": False, "error": str(exc)}
+    return {"ok": True, "reply": reply}
+
+
+@app.get("/api/fonts")
+def list_fonts():
+    """Bundled free caption fonts, grouped for the UI dropdown."""
+    return {"groups": [[g, fs] for g, fs in config.FONT_GROUPS],
+            "fonts": list(config.FONTS)}
+
+
 @app.get("/api/jobs")
 def list_jobs():
     out = []
@@ -128,6 +176,7 @@ def create_job(
     language: str = Form(default=config.DEFAULT_LANGUAGE),
     model: str = Form(default=config.DEFAULT_WHISPER_MODEL),
     scorer: str = Form(default="auto"),
+    font: str = Form(default=""),
     section: str = Form(default=""),
 ):
     job_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -149,6 +198,7 @@ def create_job(
         sec = (float(a), float(b))
     opts = {"num_clips": num_clips, "min_s": min_s, "max_s": max_s, "style": style,
             "language": language, "model": model, "scorer": scorer,
+            "font": font if font in config.FONTS else "",
             "section": sec, "track": True}
     JOBS[job_id] = {"stage": "queued", "percent": 0, "message": "queued"}
     threading.Thread(target=_run_in_thread, args=(job_id, source, opts), daemon=True).start()
@@ -191,7 +241,8 @@ def clip_retrim(job_id: str, clip_id: str, payload: dict):
         clip = retrim_clip(
             config.JOBS_DIR / job_id, clip_id,
             new_start=payload.get("start"), new_end=payload.get("end"),
-            hook_title=payload.get("hook_title"), style=payload.get("style"))
+            hook_title=payload.get("hook_title"), style=payload.get("style"),
+            font=payload.get("font"))
     except Exception as exc:  # noqa: BLE001
         return JSONResponse({"error": str(exc)}, status_code=400)
     return {"ok": True, "clip": {k: v for k, v in clip.items() if k != "words"}}

@@ -39,8 +39,9 @@ def generate_text(prompt: str, system: str = "", max_tokens: int = 4000,
                   temperature: float = 0.7, timeout: int = 120) -> str:
     """One generateContent call. Tries MODELS in order; raises on failure.
 
-    On Rocky's own PC (outside Muse) this needs a GEMINI_API_KEY env var
-    instead of the vault — see README; the vault path is used when available.
+    On Rocky's own PC (outside Muse) this needs a Gemini API key — pasted once
+    in the web UI's AI Settings (saved to ~/.rockyx/settings.json) or set as
+    the GEMINI_API_KEY env var. The vault path is used when available.
     """
     last_err: Exception | None = None
     for model in MODELS:
@@ -61,10 +62,12 @@ def generate_text(prompt: str, system: str = "", max_tokens: int = 4000,
             if add_surrogate_to_request is not None:
                 add_surrogate_to_request(request, "custom.gemini", allowed_hosts=ALLOWED_HOSTS)
             else:
-                import os
-                key = os.environ.get("GEMINI_API_KEY", "")
+                from .settings import get_gemini_key
+                key = get_gemini_key()
                 if not key:
-                    raise RuntimeError("No vault credential and no GEMINI_API_KEY set")
+                    raise RuntimeError(
+                        "No Gemini API key set — paste one in AI Settings "
+                        "in the web UI, or set the GEMINI_API_KEY env var")
                 request.add_header("x-goog-api-key", key)
             with _open(request, timeout=timeout) as response:
                 data = read_json_response(response) if read_json_response else json.loads(response.read())

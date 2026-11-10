@@ -71,6 +71,21 @@ def _escape_filter_path(path: str) -> str:
     return path.replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
 
 
+def _subtitles_filter(ass_path: Path) -> str:
+    """libass subtitles filter. fontsdir points at the bundled free fonts
+    (config.FONTS_DIR) so the picked caption font is found on any machine
+    with no install; omitted when the folder is absent/empty."""
+    f = f"subtitles=filename='{_escape_filter_path(str(ass_path))}'"
+    fonts_dir = config.FONTS_DIR
+    try:
+        has_fonts = fonts_dir.is_dir() and any(fonts_dir.iterdir())
+    except Exception:
+        has_fonts = False
+    if has_fonts:
+        f += f":fontsdir='{_escape_filter_path(str(fonts_dir))}'"
+    return f
+
+
 def measure_loudnorm(source: Path, start: float, dur: float) -> dict | None:
     """First loudnorm pass: returns measured_* values, or None on failure."""
     cmd = [config.ffmpeg_bin(), "-v", "info", "-ss", str(start), "-t", str(dur),
@@ -171,7 +186,7 @@ def render_clip(source: Path, start: float, end: float, ass_path: Path,
     vf = (
         f"crop=w={crop_w}:h={crop_h}:x='{x_expr}':y={crop_y},"
         f"scale=1080:1920,"
-        f"subtitles=filename='{_escape_filter_path(str(ass_path))}',"
+        f"{_subtitles_filter(ass_path)},"
         f"format=yuv420p"
     )
     cmd = [
@@ -188,7 +203,7 @@ def render_clip(source: Path, start: float, end: float, ass_path: Path,
         vf2 = (
             f"crop=w={crop_w}:h={crop_h}:x={(src_w - crop_w) // 2}:y={crop_y},"
             f"scale=1080:1920,"
-            f"subtitles=filename='{_escape_filter_path(str(ass_path))}',"
+            f"{_subtitles_filter(ass_path)},"
             f"format=yuv420p"
         )
         cmd[cmd.index("-vf") + 1] = vf2
@@ -228,7 +243,7 @@ def render_split_screen(source: Path, start: float, end: float, ass_path: Path,
         f"[0:v]crop=w={panel_w}:h={panel_h}:x={x_left}:y={y0},scale=1080:960[top];"
         f"[0:v]crop=w={panel_w}:h={panel_h}:x={x_right}:y={y0},scale=1080:960[bot];"
         f"[top][bot]vstack=inputs=2,"
-        f"subtitles=filename='{_escape_filter_path(str(ass_path))}',"
+        f"{_subtitles_filter(ass_path)},"
         f"format=yuv420p"
     )
     cmd = [

@@ -115,6 +115,30 @@ plain download when impersonation is unavailable, errors are shown in
 plain language, and the UI has a progress stepper. Verified from a clean
 virtualenv install before release.
 
+**v0.1.3 (2026-11-10, prepared — NOT pushed yet):** AI Settings in the web UI.
+Rocky asked for an option to set the AI API key: the UI now has an
+"🤖 AI Settings" card — paste a Gemini API key, pick the default scorer,
+save, and test the key with one click. The key is saved only on that
+computer in `~/.rockyx/settings.json` (owner-only permissions, outside the
+project folder, never in the repo or GitHub); the UI and API only ever show
+a masked form (first 4 + last 4 characters). The Gemini scorer reads the
+saved key first, then the `GEMINI_API_KEY` env var. Without a key the
+clipper keeps working on the local heuristic scorer. Plus **22 free caption
+fonts** (Rocky: "zayda saary jo Free wala tha"): free OFL Google Fonts
+bundled in `fonts/` (Montserrat ExtraBold, Bebas Neue, Anton, Luckiest Guy,
+Bangers, …), picked in the UI's new Caption font dropdown — they work on
+any computer with no install, because the renderer points libass at the
+bundled folder (`fontsdir`).
+
+**v0.1.2 (2026-11-10, prepared — NOT pushed yet):** full re-check of Rocky's
+exact failing job found the -J metadata probe could kill a job before the
+download fallback ever ran, and certificate errors got only a generic
+message. Now a failed probe no longer blocks the download, certificate
+errors get their own plain-language message, the error card has a
+"Try again" button, Recent jobs shows the failure reason, and the section
+field no longer looks pre-filled. Verified: exact-URL retest reaches the
+download step (runs 137–138), local-file E2E passes (run 140).
+
 ## What's still missing vs the paid tools
 
 - **Active-speaker switching** (who is talking, frame by frame) — v1 tracks

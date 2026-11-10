@@ -110,7 +110,14 @@ def prepare_source(source: str, work_dir: Path,
     if p.exists() and p.is_file():
         return p, {"title": p.stem, "duration": None, "source": "local"}
     if source.startswith("http://") or source.startswith("https://"):
-        info = list_formats(source)
+        try:
+            info = list_formats(source)
+        except Exception:
+            # The -J probe is only metadata (title/duration). If it fails
+            # (e.g. a proxy cert error), the download itself — which has its
+            # own impersonate -> plain fallback — may still succeed, so do
+            # not kill the job here. Fall back to placeholder metadata.
+            info = {"title": "video", "duration": None}
         video = download_youtube(source, work_dir / "source", section=section)
         return video, {"title": info.get("title", "video"),
                        "duration": info.get("duration"), "source": "youtube"}

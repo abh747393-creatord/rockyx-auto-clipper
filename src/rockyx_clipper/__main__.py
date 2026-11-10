@@ -39,6 +39,8 @@ def main(argv=None) -> int:
     p_run.add_argument("--model", default=config.DEFAULT_WHISPER_MODEL)
     p_run.add_argument("--scorer", default="auto",
                        choices=["auto", "gemini", "heuristic", "local-ml"])
+    p_run.add_argument("--font", default=None, choices=list(config.FONTS),
+                       help="caption font (bundled free font; default = style font)")
     p_run.add_argument("--section", default=None, help="YouTube only: START-END seconds")
     p_run.add_argument("--no-track", action="store_true", help="centre crop, no face tracking")
 
@@ -79,6 +81,7 @@ def main(argv=None) -> int:
         "num_clips": args.num_clips, "min_s": args.min_s, "max_s": args.max_s,
         "style": args.style, "language": args.language, "model": args.model,
         "scorer": args.scorer, "section": _parse_section(args.section),
+        "font": args.font or "",
         "track": not args.no_track,
     }
     print(f"Rockyx Auto-Clipper v{config.VERSION} — job {job_dir}")

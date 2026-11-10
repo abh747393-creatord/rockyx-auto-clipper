@@ -78,11 +78,14 @@
     <div><label>Scorer</label>
       <select id="scorer"><option value="auto">Auto (Gemini → heuristic)</option><option value="gemini">Gemini AI</option><option value="heuristic">Local heuristic</option><option value="local-ml">Local ML model</option></select></div>
   </div>
+  <label>Caption font</label>
+  <select id="font"><option value="">Style default</option></select>
+  <div class="hint">22 free fonts included — they work on any computer, no install needed.</div>
   <details><summary>Advanced</summary>
     <label>Whisper model (base = fast, small = more accurate)</label>
     <select id="model"><option value="base">base</option><option value="small">small</option><option value="tiny">tiny</option></select>
     <label>YouTube section only (optional)</label>
-    <input type="text" id="section" placeholder="600-1500">
+    <input type="text" id="section" placeholder="Leave empty for the whole video">
     <div class="hint">Leave empty to use the whole video. Format: START-END in seconds, e.g. 600-1500.</div>
   </details>
   <button id="go" onclick="startJob()">✂️ Make clips</button>
@@ -96,9 +99,26 @@
   </div>
   <div id="status"></div>
   <div id="errcard"><b>Something went wrong.</b><div id="errmsg"></div>
+    <button class="ghost" onclick="hideError(); startJob();" style="margin-top:10px">↻ Try again</button>
+    <span class="hint" style="margin-left:8px">Tip: uploading the video file instead always works.</span>
     <details><summary>Technical details</summary><div id="errdetail"></div></details>
   </div>
   <div class="note">First run downloads the transcription model (~75 MB, one time). A 10-minute video takes a few minutes on CPU.</div>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 4px">🤖 AI Settings</h3>
+  <p class="meta" style="margin:0 0 8px">Gemini AI picks the best moments and writes hooks + hashtags. Without a key, the clipper uses the built-in local scorer instead — clips still work.</p>
+  <div id="key_status" class="meta">Checking…</div>
+  <label>Gemini API key</label>
+  <input type="password" id="api_key" placeholder="Paste your Gemini API key here">
+  <div class="hint">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#7fd4ff">Google AI Studio</a>. Saved only on this computer (in a settings file outside the project) — never uploaded, shared, or put in the code.</div>
+  <label>Default scorer</label>
+  <select id="default_scorer"><option value="auto">Auto (Gemini → local)</option><option value="gemini">Gemini AI</option><option value="heuristic">Local heuristic</option><option value="local-ml">Local ML model</option></select>
+  <button class="ghost" onclick="saveSettings()">💾 Save AI settings</button>
+  <button class="ghost" onclick="testKey()">🔑 Test key</button>
+  <button class="ghost" onclick="removeKey()">🗑 Remove key</button>
+  <span id="settings_msg" class="meta"></span>
 </div>
 
 <div id="results"></div>
@@ -145,7 +165,7 @@ async function startJob() {
   const fd = new FormData();
   fd.append('url', url);
   if (f) fd.append('file', f);
-  for (const k of ['num_clips','min_s','max_s','style','language','scorer','model','section'])
+  for (const k of ['num_clips','min_s','max_s','style','language','scorer','font','model','section'])
     fd.append(k, document.getElementById(k).value);
   const go = document.getElementById('go');
   go.disabled = true; go.textContent = '⏳ Working…';
@@ -227,10 +247,62 @@ async function schedule(jobId, clipId) {
   const j = await r.json();
   document.getElementById('sc-'+clipId).textContent = j.ok ? ' ✅ saved' : ' ❌ failed';
 }
+async function loadSettings() {
+  try {
+    const r = await fetch('/api/settings'); const s = await r.json();
+    document.getElementById('default_scorer').value = s.scorer || 'auto';
+    document.getElementById('scorer').value = s.scorer || 'auto';
+    const ks = document.getElementById('key_status');
+    if (s.gemini_key_set) ks.textContent = '✅ Gemini AI: key saved (' + s.gemini_key_masked + ', via ' + s.gemini_key_source + ')';
+    else ks.textContent = '⚪ Gemini AI: no key — using local scoring. Paste a key below to turn on Gemini.';
+  } catch (e) { document.getElementById('key_status').textContent = 'Could not load AI settings.'; }
+}
+async function saveSettings() {
+  const msg = document.getElementById('settings_msg');
+  msg.textContent = ' saving…';
+  const body = { scorer: document.getElementById('default_scorer').value };
+  const k = document.getElementById('api_key').value.trim();
+  if (k) body.gemini_api_key = k;
+  const r = await fetch('/api/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  const s = await r.json();
+  if (s.error) { msg.textContent = ' ❌ ' + s.error; return; }
+  document.getElementById('api_key').value = '';
+  document.getElementById('scorer').value = s.scorer || 'auto';
+  msg.textContent = ' ✅ saved';
+  loadSettings();
+}
+async function testKey() {
+  const msg = document.getElementById('settings_msg');
+  msg.textContent = ' testing…';
+  const r = await fetch('/api/settings/test', {method:'POST'});
+  const j = await r.json();
+  msg.textContent = j.ok ? ' ✅ key works — Gemini replied "' + j.reply + '"' : ' ❌ ' + (j.error || 'failed');
+}
+async function removeKey() {
+  const msg = document.getElementById('settings_msg');
+  msg.textContent = ' removing…';
+  const r = await fetch('/api/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({gemini_api_key: ''})});
+  const s = await r.json();
+  msg.textContent = s.error ? ' ❌ ' + s.error : ' ✅ key removed';
+  loadSettings();
+}
+loadSettings();
+async function loadFonts() {
+  try {
+    const r = await fetch('/api/fonts'); const f = await r.json();
+    const sel = document.getElementById('font');
+    for (const [group, names] of f.groups) {
+      const og = document.createElement('optgroup'); og.label = group;
+      for (const n of names) { const o = document.createElement('option'); o.value = n; o.textContent = n; og.appendChild(o); }
+      sel.appendChild(og);
+    }
+  } catch (e) { /* dropdown keeps "Style default" only */ }
+}
+loadFonts();
 async function loadJobs() {
   const r = await fetch('/api/jobs'); const js = await r.json();
   document.getElementById('jobs').innerHTML = js.slice(0,8).map(j =>
-    `<div>${esc(j.job_id)} — ${esc(j.stage)} ${j.summary ? `· ${j.summary.clips.length} clips · ${esc(j.summary.title||'')}` : ''}</div>`).join('') || 'No jobs yet.';
+    `<div>${esc(j.job_id)} — ${esc(j.stage)}${j.stage === 'error' && j.error ? ` · ${esc(j.error)}` : ''} ${j.summary ? `· ${j.summary.clips.length} clips · ${esc(j.summary.title||'')}` : ''}</div>`).join('') || 'No jobs yet.';
 }
 loadJobs();
 </script>

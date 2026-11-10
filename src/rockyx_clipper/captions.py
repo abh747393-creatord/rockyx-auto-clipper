@@ -6,7 +6,12 @@ and the *current word* is highlighted with a colour + bold override, one ASS
 event per word. This renders correctly in libass (ffmpeg subtitles filter)
 on Linux and Windows, with no karaoke-fill quirks.
 
-Fonts: DejaVu Sans on Linux, Arial on Windows (override with ROCKYX_FONT).
+Fonts: 22 free OFL Google Fonts bundled in fonts/ (see config.FONTS) — the
+user picks one in the UI and libass finds it via the subtitles filter's
+fontsdir, so they work on any machine with no install. Without a pick (or
+ROCKYX_FONT unset): DejaVu Sans on Linux, Arial on Windows. A font name
+given here that is not bundled is still passed through — libass then falls
+back to the closest system font.
 """
 from __future__ import annotations
 
@@ -83,16 +88,19 @@ def chunk_words(words: list[dict], max_words: int = 5, max_s: float = 2.4) -> li
 
 def words_to_ass(words: list[dict], clip_start: float, clip_end: float,
                  style_name: str = "hormozi", hook_title: str = "",
-                 out_path: Path | None = None, margin_v: int | None = None) -> str:
+                 out_path: Path | None = None, margin_v: int | None = None,
+                 font: str = "") -> str:
     """Build an ASS subtitle string (word-highlight kinetic captions).
 
     Times are relative to the clip (clip_start subtracted).
     margin_v overrides the caption height (split-screen puts captions on the seam).
+    font overrides the style's font (a bundled font name from config.FONTS,
+    or any system font name); empty means the style default.
     """
     style = dict(STYLES.get(style_name, STYLES["hormozi"]))
     if margin_v is not None:
         style["margin_v"] = margin_v
-    font = resolve_font()
+    font = font or resolve_font()
     rel = [dict(w, start=w["start"] - clip_start, end=w["end"] - clip_start)
            for w in words if w["end"] > clip_start and w["start"] < clip_end]
     lines = chunk_words(rel)

@@ -76,6 +76,7 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
     language = opts.get("language", config.DEFAULT_LANGUAGE)
     model = opts.get("model", config.DEFAULT_WHISPER_MODEL)
     scorer = opts.get("scorer", "auto")  # auto | gemini | heuristic | local-ml
+    font = opts.get("font", "")  # bundled font name from config.FONTS, "" = style default
     section = opts.get("section")
     do_track = bool(opts.get("track", True))
     started = time.time()
@@ -172,7 +173,7 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
         captions_mod.words_to_ass(
             clip_words, start, end, style_name=style,
             hook_title=clip.get("hook_title", ""),
-            out_path=ass_path, margin_v=860 if split else None)
+            out_path=ass_path, margin_v=860 if split else None, font=font)
         srt_path = cdir / f"{cid}.srt"
         captions_mod.words_to_srt(clip_words, start, end, out_path=srt_path)
 
@@ -186,7 +187,7 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
         cap = dict(clip)
         cap.update({
             "id": cid, "file": str(out_path), "srt": str(srt_path),
-            "ass": str(ass_path), "split_screen": split,
+            "ass": str(ass_path), "split_screen": split, "font": font,
             "tracking": {"hasTwoSpeakers": bool(tracking and tracking.get("hasTwoSpeakers")),
                          "avgX": (tracking or {}).get("avgX"),
                          "avgFw": (tracking or {}).get("avgFw")},
@@ -212,7 +213,8 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
 
 def retrim_clip(job_dir: Path, clip_id: str, new_start: float | None = None,
                 new_end: float | None = None, hook_title: str | None = None,
-                style: str | None = None, progress_cb=None) -> dict:
+                style: str | None = None, progress_cb=None,
+                font: str | None = None) -> dict:
     """Re-render one clip with edited start/end/title/style (transcript editor)."""
     job_dir = Path(job_dir)
     summary = json.loads((job_dir / "job.json").read_text(encoding="utf-8"))
@@ -224,6 +226,7 @@ def retrim_clip(job_dir: Path, clip_id: str, new_start: float | None = None,
     if end - start < 5:
         raise ValueError("clip must be at least 5 seconds")
     style = style or summary.get("style", config.DEFAULT_CAPTION_STYLE)
+    font = font if font is not None else clip.get("font", "")
     hook = hook_title if hook_title is not None else clip.get("hook_title", "")
     video = Path(summary["source"])
     cdir = job_dir / "clips" / clip_id
@@ -237,7 +240,7 @@ def retrim_clip(job_dir: Path, clip_id: str, new_start: float | None = None,
     ass_path = cdir / f"{clip_id}.ass"
     captions_mod.words_to_ass(clip_words, start, end, style_name=style,
                               hook_title=hook, out_path=ass_path,
-                              margin_v=860 if split else None)
+                              margin_v=860 if split else None, font=font)
     captions_mod.words_to_srt(clip_words, start, end, out_path=cdir / f"{clip_id}.srt")
     out_path = cdir / f"{clip_id}.mp4"
     if split:
