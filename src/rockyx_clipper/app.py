@@ -22,6 +22,31 @@ STATIC_DIR = ROOT / "static"
 JOBS: dict[str, dict] = {}
 
 
+def _friendly_error(exc: Exception) -> tuple[str, str]:
+    """Return (short human message, technical detail) for a job failure.
+
+    The UI shows the human message; the technical tail stays behind a
+    "details" toggle instead of being dumped raw on screen.
+    """
+    raw = str(exc)
+    low = raw.lower()
+    if "impersonate" in low and "not available" in low:
+        return ("YouTube download needs a missing helper. In the project folder run: "
+                "pip install curl_cffi — then try again.", raw[-800:])
+    if "429" in low or "too many requests" in low:
+        return ("YouTube is rate-limiting this network right now. Wait a while and retry, "
+                "or upload a video file instead — local files always work.", raw[-800:])
+    if "video unavailable" in low or "private video" in low:
+        return ("That YouTube video cannot be downloaded (unavailable or private). "
+                "Check the link, or upload the video file instead.", raw[-800:])
+    if "no video stream" in low:
+        return ("The source has no video stream — pick a different video.", raw[-800:])
+    if "no audio stream" in low:
+        return ("The source has no audio — silent videos cannot be clipped.", raw[-800:])
+    return ("The download failed. Check the link and try again, or upload the video "
+            "file instead — local files always work.", raw[-800:])
+
+
 def _job_status(job_id: str) -> dict:
     state = JOBS.get(job_id, {})
     job_dir = config.JOBS_DIR / job_id
@@ -38,6 +63,7 @@ def _job_status(job_id: str) -> dict:
         "percent": state.get("percent", 100 if summary else 0),
         "message": state.get("message", ""),
         "error": state.get("error"),
+        "error_detail": state.get("error_detail"),
         "summary": summary,
     }
 
@@ -53,8 +79,9 @@ def _run_in_thread(job_id: str, source: str, opts: dict):
         run_job(source, job_dir, opts, progress_cb=progress)
         JOBS[job_id] = {"stage": "done", "percent": 100, "message": "done"}
     except Exception as exc:  # noqa: BLE001 - surfaced in the UI
-        JOBS[job_id] = {"stage": "error", "percent": 0, "message": str(exc),
-                        "error": str(exc)}
+        friendly, detail = _friendly_error(exc)
+        JOBS[job_id] = {"stage": "error", "percent": 0, "message": friendly,
+                        "error": friendly, "error_detail": detail}
 
 
 app = FastAPI(title="Rockyx Auto-Clipper", version=config.VERSION)

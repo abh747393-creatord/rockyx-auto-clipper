@@ -61,15 +61,17 @@ def download_youtube(url: str, out_dir: Path, section: tuple[float, float] | Non
                      title_hint: str = "video") -> Path:
     """Download a YouTube URL (optionally only [start,end] seconds).
 
+    Tries Chrome impersonation first (best quality / bot-check bypass), then
+    falls back to a plain download when curl_cffi is missing — a fresh
+    install without it must NOT hard-fail with an impersonate error.
     Returns the downloaded file path. Verifies the file exists and is non-empty.
     Raises RuntimeError with yt-dlp's tail output on failure (e.g. HTTP 429
     when YouTube rate-limits the egress IP — retry later, it is transient).
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     out_tmpl = str(out_dir / "%(title).80s-%(id)s.%(ext)s")
-    cmd = [
+    common = [
         sys.executable, "-m", "yt_dlp",
-        "--impersonate", "chrome",
         "--extractor-args", "youtube:player_client=web",
         "-f", WEB_FORMATS,
         "--merge-output-format", "mp4",
@@ -78,11 +80,20 @@ def download_youtube(url: str, out_dir: Path, section: tuple[float, float] | Non
     ]
     if section:
         start, end = section
-        cmd += ["--download-sections", f"*{start}-{end}", "--force-keyframes-at-cuts"]
-    cmd.append(url)
-    proc = _run(cmd, timeout=1800)
-    if proc.returncode != 0:
-        raise RuntimeError(f"yt-dlp download failed: {(proc.stderr or proc.stdout or '')[-800:]}")
+        common += ["--download-sections", f"*{start}-{end}", "--force-keyframes-at-cuts"]
+    common.append(url)
+    attempts = [
+        common[:3] + ["--impersonate", "chrome"] + common[3:],
+        common,  # plain fallback: no impersonation (missing curl_cffi)
+    ]
+    last_err = ""
+    for cmd in attempts:
+        proc = _run(cmd, timeout=1800)
+        if proc.returncode == 0:
+            break
+        last_err = (proc.stderr or proc.stdout or "")[-800:]
+    else:
+        raise RuntimeError(f"yt-dlp download failed: {last_err}")
     files = sorted(out_dir.glob("*"), key=lambda p: p.stat().st_mtime)
     files = [f for f in files if f.is_file() and f.stat().st_size > 0
              and f.suffix.lower() in (".mp4", ".mkv", ".webm")]

@@ -108,6 +108,13 @@ component tests + full end-to-end runs), every failure is fixed and
 re-tested. Log: `TEST-LOG.md`. Harness: `tests/test_harness.py`.
 Do not hand over until the loop is clean.
 
+**v0.1.1 (2026-11-10):** fixed the fresh-install YouTube failure —
+`requirements.txt` was missing `curl_cffi`, so `--impersonate chrome`
+failed on a clean PC. Now included, plus the downloader falls back to a
+plain download when impersonation is unavailable, errors are shown in
+plain language, and the UI has a progress stepper. Verified from a clean
+virtualenv install before release.
+
 ## What's still missing vs the paid tools
 
 - **Active-speaker switching** (who is talking, frame by frame) — v1 tracks
@@ -122,6 +129,7 @@ Do not hand over until the loop is clean.
 
 ## Troubleshooting
 
+- **YouTube download fails with "Impersonate target chrome is not available"**: fixed in v0.1.1 — `requirements.txt` now includes `curl_cffi`, and the downloader falls back to a plain download when impersonation is unavailable. If you installed v0.1.0, run `pip install -r requirements.txt` again (or `pip install curl_cffi`).
 - **YouTube 429 / "Video unavailable"**: YouTube rate-limits the shared
   network IP. Wait a while and retry — it is transient. Local files always work.
 - **Gemini 503 / no reply**: the model is busy; the tool falls back to

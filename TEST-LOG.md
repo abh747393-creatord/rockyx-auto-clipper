@@ -119,3 +119,26 @@ mistakes found, fix applied, retest result. Never fake a count.
 | 111 | 2026-11-10 03:24 | ml_local package | local-ml-import | PASS | virality_inference imports (model load tested in e2e) |  |  |
 | 112 | 2026-11-10 03:26 | Minions 10-min section (movie dialogue) | e2e-minions-section | PASS | 10-min movie section -> 2 clips, 147.1s |  |  |
 | 113 | 2026-11-10 03:26 | Lex Fridman #400 600-1200s | e2e-youtube | FAIL | RuntimeError: yt-dlp -J failed: outube] dZg6rfcGx8Q: Unable to download API page: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1000) (caused by Ce / |  |  |
+| 114 | 2026-11-10 13:15 | package | imports | PASS | 11 modules import clean |  |  |
+| 115 | 2026-11-10 13:15 | repo files | config-paths | PASS | model + prompt + 5 licences present |  |  |
+| 116 | 2026-11-10 13:15 | synthetic 400 words | candidates-normal | PASS | 14 candidates, lengths in range |  |  |
+| 117 | 2026-11-10 13:15 | synthetic 0/3 words | candidates-empty | PASS | empty/short input -> no candidates (no crash) |  |  |
+| 118 | 2026-11-10 13:15 | synthetic hook vs filler | heuristic-ranking | PASS | hook=42.0 filler=15.4 |  |  |
+| 119 | 2026-11-10 13:15 | synthetic overlapping clips | dedupe-clips | PASS | overlap dropped, best kept |  |  |
+| 120 | 2026-11-10 13:15 | synthetic 100 words | transcript-lines | PASS | 2 lines, [mm:ss] format |  |  |
+| 121 | 2026-11-10 13:15 | synthetic 40 words | captions-all-styles | PASS | 4 styles ASS+SRT ok |  |  |
+| 122 | 2026-11-10 13:15 | synthetic braces | captions-escaping | PASS | braces stripped, no ASS injection |  |  |
+| 123 | 2026-11-10 13:15 | synthetic Hindi words | captions-hindi | PASS | Devanagari writes to ASS (shaping depends on font — see README) |  |  |
+| 124 | 2026-11-10 13:15 | synthetic 240-pt trajectory | crop-expression | PASS | 60s tracked expr 1246 chars; empty->centre |  |  |
+| 125 | 2026-11-10 13:15 | synthetic measured values | loudnorm-filter | PASS | measured + fallback strings ok |  |  |
+| 126 | 2026-11-10 13:15 | synthetic 5s 720p | render-tiny | PASS | 1080x1920, v=5.00 a=5.00 |  |  |
+| 127 | 2026-11-10 13:15 | synthetic 4s 720x1280 | render-vertical-source | PASS | vertical 720x1280 source -> 1080x1920 ok |  |  |
+| 128 | 2026-11-10 13:15 | synthetic 4s 720p | render-split-screen | PASS | split-screen 1080x1920 ok |  |  |
+| 129 | 2026-11-10 13:15 | synthetic A/V mismatch | verify-durations-rejects | PASS | mismatched A/V correctly rejected |  |  |
+| 130 | 2026-11-10 13:15 | synthetic 6s colour video | track-no-face | PASS | no-face -> centre fallback, 24 samples |  |  |
+| 131 | 2026-11-10 13:15 | nonexistent path | track-missing-file | PASS | missing file -> safe fallback dict |  |  |
+| 132 | 2026-11-10 13:15 | bad path / bad string | download-errors | PASS | bad local path / bad string -> ValueError |  |  |
+| 133 | 2026-11-10 13:15 | prompts/moment-picking.txt | prompt-loads | PASS | moment-picking prompt has all placeholders |  |  |
+| 134 | 2026-11-10 13:15 | localhost:8137 | webui-smoke | PASS | health + index + bad-job 400 ok |  |  |
+| 135 | 2026-11-10 13:16 | Gemini vault credential | gemini-probe | FAIL | RuntimeError: Gemini failed on all models: Gemini HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later. / RuntimeError: Gemini failed on all models: Gemini HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later. |  |  |
+| 136 | 2026-11-10 13:16 | ml_local package | local-ml-import | PASS | virality_inference imports (model load tested in e2e) |  |  |

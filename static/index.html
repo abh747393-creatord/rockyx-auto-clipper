@@ -7,19 +7,35 @@
 <style>
   body { font-family: system-ui, Arial, sans-serif; background:#111; color:#eee; margin:0; padding:24px; }
   h1 { font-size:22px; margin:0 0 4px; } h1 span { color:#ffd60a; }
-  p.sub { color:#aaa; margin:0 0 20px; }
+  p.sub { color:#aaa; margin:0 0 14px; }
+  .steps { display:flex; gap:10px; flex-wrap:wrap; margin:0 0 20px; }
+  .step { flex:1; min-width:160px; background:#181818; border:1px solid #2c2c2c; border-radius:10px; padding:10px 12px; font-size:13px; color:#bbb; }
+  .step b { display:block; color:#ffd60a; font-size:13px; margin-bottom:2px; }
   .card { background:#1c1c1c; border:1px solid #333; border-radius:12px; padding:16px; margin-bottom:16px; }
   label { display:block; font-size:13px; color:#bbb; margin:10px 0 4px; }
+  .hint { font-size:12px; color:#888; margin-top:3px; }
   input[type=text], input[type=number], select, input[type=datetime-local] {
     width:100%; box-sizing:border-box; background:#222; color:#eee; border:1px solid #444;
     border-radius:8px; padding:9px; font-size:14px; }
+  input:focus, select:focus { border-color:#ffd60a; outline:none; }
+  input.bad { border-color:#ff5c5c; }
   .row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-  button { background:#ffd60a; color:#111; border:0; border-radius:8px; padding:11px 18px;
+  button { background:#ffd60a; color:#111; border:0; border-radius:8px; padding:12px 20px;
     font-weight:700; font-size:15px; cursor:pointer; margin-top:14px; }
+  button:disabled { opacity:.55; cursor:wait; }
   button.ghost { background:#333; color:#eee; font-weight:400; }
   #progress { height:10px; background:#333; border-radius:6px; overflow:hidden; margin-top:12px; display:none; }
-  #bar { height:100%; width:0%; background:#ffd60a; }
+  #bar { height:100%; width:0%; background:#ffd60a; transition:width .4s; }
   #status { color:#ffd60a; margin-top:8px; font-size:14px; }
+  .stepper { display:flex; gap:6px; margin-top:12px; display:none; flex-wrap:wrap; }
+  .pill { font-size:12px; padding:5px 10px; border-radius:20px; background:#262626; color:#999; border:1px solid #333; }
+  .pill.on { background:#ffd60a; color:#111; border-color:#ffd60a; font-weight:700; }
+  .pill.done { background:#1e3a1e; color:#8be08b; border-color:#2f5a2f; }
+  #errcard { display:none; margin-top:12px; border:1px solid #7a2b2b; background:#2a1717;
+    border-radius:10px; padding:12px 14px; font-size:14px; line-height:1.5; }
+  #errcard b { color:#ff8a8a; }
+  #errcard details { margin-top:8px; font-size:12px; color:#c99; word-break:break-word; }
+  #errcard summary { cursor:pointer; color:#e8b4b4; }
   .clips { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
   .clip video { width:100%; border-radius:10px; background:#000; }
   .score { font-size:26px; font-weight:800; color:#ffd60a; }
@@ -30,17 +46,25 @@
   .retrim input { width:80px; display:inline-block; margin-right:6px; }
   .retrim { font-size:13px; margin-top:10px; border-top:1px solid #333; padding-top:10px; }
   details { font-size:13px; color:#aaa; } summary { cursor:pointer; color:#eee; }
+  .note { font-size:12px; color:#888; margin-top:10px; }
 </style>
 </head>
 <body>
 <h1>🎬 Rocky<span>x</span> Auto-Clipper</h1>
 <p class="sub">Long video → viral vertical clips with captions. Free forever, no watermark, no minute limits. Runs 100% on your computer.</p>
 
+<div class="steps">
+  <div class="step"><b>1 · Give a video</b>Paste a YouTube link or upload a file below.</div>
+  <div class="step"><b>2 · Make clips</b>Hit the yellow button — it downloads, transcribes, scores and renders.</div>
+  <div class="step"><b>3 · Download &amp; post</b>Preview each clip, grab the video + caption pack, post anywhere.</div>
+</div>
+
 <div class="card">
   <label>YouTube URL</label>
   <input type="text" id="url" placeholder="https://www.youtube.com/watch?v=...">
   <label>…or upload a video file</label>
   <input type="file" id="file" accept="video/*">
+  <div class="hint">Tip: a local file always works — even when YouTube rate-limits downloads.</div>
   <div class="row">
     <div><label>Clips</label><input type="number" id="num_clips" value="3" min="1" max="10"></div>
     <div><label>Min seconds</label><input type="number" id="min_s" value="30" min="10" max="120"></div>
@@ -57,12 +81,24 @@
   <details><summary>Advanced</summary>
     <label>Whisper model (base = fast, small = more accurate)</label>
     <select id="model"><option value="base">base</option><option value="small">small</option><option value="tiny">tiny</option></select>
-    <label>YouTube section only (optional, START-END seconds, e.g. 600-1500)</label>
+    <label>YouTube section only (optional)</label>
     <input type="text" id="section" placeholder="600-1500">
+    <div class="hint">Leave empty to use the whole video. Format: START-END in seconds, e.g. 600-1500.</div>
   </details>
   <button id="go" onclick="startJob()">✂️ Make clips</button>
   <div id="progress"><div id="bar"></div></div>
+  <div class="stepper" id="stepper">
+    <span class="pill" data-stage="download">⬇ Download</span>
+    <span class="pill" data-stage="transcribe">🎙 Transcribe</span>
+    <span class="pill" data-stage="score">⭐ Score moments</span>
+    <span class="pill" data-stage="track">🎯 Track &amp; captions</span>
+    <span class="pill" data-stage="render">🎬 Render clips</span>
+  </div>
   <div id="status"></div>
+  <div id="errcard"><b>Something went wrong.</b><div id="errmsg"></div>
+    <details><summary>Technical details</summary><div id="errdetail"></div></details>
+  </div>
+  <div class="note">First run downloads the transcription model (~75 MB, one time). A 10-minute video takes a few minutes on CPU.</div>
 </div>
 
 <div id="results"></div>
@@ -74,33 +110,71 @@
 
 <script>
 let timer = null;
+const STAGES = ['download','transcribe','score','track','render'];
+function setStepper(stage) {
+  const wrap = document.getElementById('stepper');
+  wrap.style.display = 'flex';
+  const idx = STAGES.indexOf(stage);
+  document.querySelectorAll('#stepper .pill').forEach(p => {
+    const i = STAGES.indexOf(p.dataset.stage);
+    p.classList.toggle('done', stage === 'done' || i < idx);
+    p.classList.toggle('on', i === idx);
+  });
+  if (stage === 'done') document.querySelectorAll('#stepper .pill').forEach(p => { p.classList.add('done'); p.classList.remove('on'); });
+}
+function showError(msg, detail) {
+  document.getElementById('errmsg').textContent = msg;
+  document.getElementById('errdetail').textContent = detail || '';
+  document.getElementById('errcard').style.display = 'block';
+  document.getElementById('status').textContent = 'Failed — see the message above.';
+}
+function hideError() { document.getElementById('errcard').style.display = 'none'; }
 async function startJob() {
-  const fd = new FormData();
-  fd.append('url', document.getElementById('url').value);
+  hideError();
+  const secEl = document.getElementById('section');
+  const sec = secEl.value.trim();
+  if (sec && !/^\d+(\.\d+)?-\d+(\.\d+)?$/.test(sec)) {
+    secEl.classList.add('bad');
+    showError('Section format is wrong. Use START-END in seconds, e.g. 600-1500 — or leave it empty for the whole video.', '');
+    return;
+  }
+  secEl.classList.remove('bad');
+  const url = document.getElementById('url').value.trim();
   const f = document.getElementById('file').files[0];
+  if (!url && !f) { showError('Give a YouTube URL or upload a video file first.', ''); return; }
+  const fd = new FormData();
+  fd.append('url', url);
   if (f) fd.append('file', f);
   for (const k of ['num_clips','min_s','max_s','style','language','scorer','model','section'])
     fd.append(k, document.getElementById(k).value);
-  document.getElementById('go').disabled = true;
+  const go = document.getElementById('go');
+  go.disabled = true; go.textContent = '⏳ Working…';
   document.getElementById('progress').style.display = 'block';
+  document.getElementById('bar').style.width = '2%';
   document.getElementById('status').textContent = 'Starting…';
-  const r = await fetch('/api/jobs', {method:'POST', body: fd});
+  setStepper('download');
+  let r;
+  try { r = await fetch('/api/jobs', {method:'POST', body: fd}); }
+  catch (e) { showError('Could not reach the local server. Is run.bat still running?', String(e)); go.disabled = false; go.textContent = '✂️ Make clips'; return; }
   const j = await r.json();
-  if (j.error) { document.getElementById('status').textContent = 'Error: ' + j.error; document.getElementById('go').disabled = false; return; }
+  if (j.error) { showError(j.error, ''); go.disabled = false; go.textContent = '✂️ Make clips'; return; }
   poll(j.job_id);
 }
 function poll(jobId) {
   if (timer) clearInterval(timer);
   timer = setInterval(async () => {
-    const r = await fetch('/api/jobs/' + jobId);
-    const j = await r.json();
+    let j;
+    try { const r = await fetch('/api/jobs/' + jobId); j = await r.json(); }
+    catch (e) { return; }
     document.getElementById('bar').style.width = (j.percent||0) + '%';
     document.getElementById('status').textContent = (j.stage||'') + ' — ' + (j.message||'');
+    if (j.stage && j.stage !== 'done' && j.stage !== 'error') setStepper(j.stage === 'captions' ? 'track' : j.stage);
     if (j.stage === 'done' || j.stage === 'error') {
       clearInterval(timer);
-      document.getElementById('go').disabled = false;
-      if (j.stage === 'done') renderResults(j);
-      else document.getElementById('status').textContent = 'Error: ' + (j.error||j.message);
+      const go = document.getElementById('go');
+      go.disabled = false; go.textContent = '✂️ Make clips';
+      if (j.stage === 'done') { setStepper('done'); renderResults(j); }
+      else showError(j.error || j.message || 'The job failed.', j.error_detail || '');
       loadJobs();
     }
   }, 2000);
