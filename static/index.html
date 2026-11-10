@@ -127,6 +127,7 @@
     <option value="gemini">Gemini (Google AI Studio key)</option>
     <option value="deepseek">DeepSeek (one key, saved once — very cheap)</option>
     <option value="ollama">Ollama — local, no key at all</option>
+    <option value="custom">Custom model — your own (Ollama / LM Studio / any server)</option>
   </select>
   <div id="gemini_fields">
     <label>Gemini API key</label>
@@ -142,6 +143,15 @@
     <div class="hint">No key needed — Ollama runs a small AI model on your own computer. Install it from <a href="https://ollama.com" target="_blank" style="color:#7fd4ff">ollama.com</a>, then in a terminal run: <code>ollama pull qwen2.5:3b</code> (about 2 GB, one time). The clipper talks to it at http://localhost:11434.</div>
     <label>Ollama model</label>
     <input type="text" id="ollama_model" placeholder="qwen2.5:3b">
+  </div>
+  <div id="custom_fields" style="display:none">
+    <div class="hint">Your own model on any OpenAI-compatible server — Ollama, LM Studio, or your own API. The key is optional (local servers usually accept any key or none). Saved only on this computer — never uploaded, shared, or put in the code.</div>
+    <label>Server URL</label>
+    <input type="text" id="custom_base_url" placeholder="http://localhost:11434/v1">
+    <label>Model name</label>
+    <input type="text" id="custom_model" placeholder="qwen2.5:3b">
+    <label>API key (optional)</label>
+    <input type="password" id="custom_api_key" placeholder="Paste your API key here">
   </div>
   <label>Default scorer</label>
   <select id="default_scorer"><option value="auto">Auto (AI → local)</option><option value="gemini">AI provider</option><option value="heuristic">Local heuristic</option><option value="local-ml">Local ML model</option></select>
@@ -282,6 +292,7 @@ function showProviderFields() {
   document.getElementById('gemini_fields').style.display = p === 'gemini' ? '' : 'none';
   document.getElementById('deepseek_fields').style.display = p === 'deepseek' ? '' : 'none';
   document.getElementById('ollama_fields').style.display = p === 'ollama' ? '' : 'none';
+  document.getElementById('custom_fields').style.display = p === 'custom' ? '' : 'none';
 }
 async function loadSettings() {
   try {
@@ -290,12 +301,16 @@ async function loadSettings() {
     document.getElementById('scorer').value = s.scorer || 'auto';
     document.getElementById('ai_provider').value = s.provider || 'gemini';
     document.getElementById('ollama_model').value = s.ollama_model || 'qwen2.5:3b';
+    document.getElementById('custom_base_url').value = s.custom_base_url || 'http://localhost:11434/v1';
+    document.getElementById('custom_model').value = s.custom_model || 'qwen2.5:3b';
     showProviderFields();
     const ks = document.getElementById('key_status');
     if (s.provider === 'deepseek') {
       ks.textContent = s.deepseek_key_set ? '✅ DeepSeek: key saved (' + s.deepseek_key_masked + ', via ' + s.deepseek_key_source + ') — one key, no expiry.' : '⚪ DeepSeek: no key — paste one below to turn on DeepSeek.';
     } else if (s.provider === 'ollama') {
       ks.textContent = '✅ Ollama (local): no key needed — model ' + (s.ollama_model || 'qwen2.5:3b') + ' on ' + (s.ollama_host || 'http://localhost:11434') + '.';
+    } else if (s.provider === 'custom') {
+      ks.textContent = '✅ Custom model: ' + (s.custom_model || 'qwen2.5:3b') + ' on ' + (s.custom_base_url || 'http://localhost:11434/v1') + (s.custom_key_set ? ' — key saved (' + s.custom_key_masked + ')' : ' — no key set') + '.';
     } else if (s.gemini_key_set) ks.textContent = '✅ Gemini AI: key saved (' + s.gemini_key_masked + ', via ' + s.gemini_key_source + ')';
     else ks.textContent = '⚪ Gemini AI: no key — using local scoring. Paste a key below to turn on Gemini.';
   } catch (e) { document.getElementById('key_status').textContent = 'Could not load AI settings.'; }
@@ -310,11 +325,18 @@ async function saveSettings() {
   if (dk) body.deepseek_api_key = dk;
   const om = document.getElementById('ollama_model').value.trim();
   if (om) body.ollama_model = om;
+  const cb = document.getElementById('custom_base_url').value.trim();
+  if (cb) body.custom_base_url = cb;
+  const cm = document.getElementById('custom_model').value.trim();
+  if (cm) body.custom_model = cm;
+  const ck = document.getElementById('custom_api_key').value.trim();
+  if (ck) body.custom_api_key = ck;
   const r = await fetch('/api/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
   const s = await r.json();
   if (s.error) { msg.textContent = ' ❌ ' + s.error; return; }
   document.getElementById('api_key').value = '';
   document.getElementById('deepseek_key').value = '';
+  document.getElementById('custom_api_key').value = '';
   document.getElementById('scorer').value = s.scorer || 'auto';
   msg.textContent = ' ✅ saved';
   loadSettings();
@@ -330,7 +352,7 @@ async function removeKey() {
   const msg = document.getElementById('settings_msg');
   msg.textContent = ' removing…';
   const p = document.getElementById('ai_provider').value;
-  const body = p === 'deepseek' ? {deepseek_api_key: ''} : {gemini_api_key: ''};
+  const body = p === 'deepseek' ? {deepseek_api_key: ''} : p === 'custom' ? {custom_api_key: ''} : {gemini_api_key: ''};
   const r = await fetch('/api/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
   const s = await r.json();
   msg.textContent = s.error ? ' ❌ ' + s.error : ' ✅ key removed';

@@ -120,26 +120,35 @@ def get_settings():
 
 @app.post("/api/settings")
 def save_settings(payload: dict):
-    """Save AI settings: provider, keys, Ollama model/host, default scorer.
+    """Save AI settings: provider, keys, Ollama model/host, custom model,
+    default scorer.
 
-    Send {"provider": "gemini"|"deepseek"|"ollama"} to switch provider,
-    {"gemini_api_key": "<key>"} / {"deepseek_api_key": "<key>"} to save a
-    key ("" clears it), {"ollama_model": "..."} / {"ollama_host": "..."}
-    for local Ollama, {"scorer": "auto"|"gemini"|"heuristic"|"local-ml"}
-    to change the default. Keys are stored only on this machine
-    (~/.rockyx/settings.json).
+    Send {"provider": "gemini"|"deepseek"|"ollama"|"custom"} to switch
+    provider, {"gemini_api_key": "<key>"} / {"deepseek_api_key": "<key>"} /
+    {"custom_api_key": "<key>"} to save a key ("" clears it),
+    {"ollama_model": "..."} / {"ollama_host": "..."} for local Ollama,
+    {"custom_base_url": "..."} / {"custom_model": "..."} for a custom
+    OpenAI-compatible server, {"scorer": "auto"|"gemini"|"heuristic"|
+    "local-ml"} to change the default. Keys are stored only on this
+    machine (~/.rockyx/settings.json).
     """
     try:
         if "gemini_api_key" in payload:
             settings_mod.save_settings(gemini_api_key=str(payload.get("gemini_api_key") or ""))
         if "deepseek_api_key" in payload:
             settings_mod.save_settings(deepseek_api_key=str(payload.get("deepseek_api_key") or ""))
+        if "custom_api_key" in payload:
+            settings_mod.save_settings(custom_api_key=str(payload.get("custom_api_key") or ""))
         if "provider" in payload:
             settings_mod.save_settings(provider=str(payload.get("provider") or "gemini"))
         if "ollama_model" in payload:
             settings_mod.save_settings(ollama_model=str(payload.get("ollama_model") or ""))
         if "ollama_host" in payload:
             settings_mod.save_settings(ollama_host=str(payload.get("ollama_host") or ""))
+        if "custom_base_url" in payload:
+            settings_mod.save_settings(custom_base_url=str(payload.get("custom_base_url") or ""))
+        if "custom_model" in payload:
+            settings_mod.save_settings(custom_model=str(payload.get("custom_model") or ""))
         if "scorer" in payload:
             settings_mod.save_settings(scorer=str(payload.get("scorer") or "auto"))
     except ValueError as exc:

@@ -7,10 +7,13 @@ pipeline:
 - gemini: Google Gemini, key from the vault (Muse) or AI Settings.
 - deepseek: DeepSeek API, one long-lived key saved once in AI Settings.
 - ollama: a local model via Ollama — NO key at all, runs on this computer.
+- custom: the user's own model on any OpenAI-compatible server
+  (Ollama's /v1 endpoint, LM Studio, ...), with its own base URL,
+  model name and optional API key.
 """
 from __future__ import annotations
 
-PROVIDERS = ["gemini", "deepseek", "ollama"]
+PROVIDERS = ["gemini", "deepseek", "ollama", "custom"]
 
 
 def active_provider() -> str:
@@ -33,6 +36,11 @@ def generate_text(prompt: str, system: str = "", max_tokens: int = 4000,
     if provider == "ollama":
         from . import ollama_client
         return ollama_client.generate_text(
+            prompt, system=system, max_tokens=max_tokens,
+            temperature=temperature, timeout=max(timeout, 300))
+    if provider == "custom":
+        from . import custom_client
+        return custom_client.generate_text(
             prompt, system=system, max_tokens=max_tokens,
             temperature=temperature, timeout=max(timeout, 300))
     from . import gemini_client

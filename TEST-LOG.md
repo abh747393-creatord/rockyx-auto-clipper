@@ -194,3 +194,30 @@ mistakes found, fix applied, retest result. Never fake a count.
 | 186 | 2026-11-10 18:48 | localhost:8137 | webui-smoke | PASS | health + index + bad-job 400 ok |  |  |
 | 187 | 2026-11-10 18:49 | Gemini vault credential | gemini-probe | FAIL | RuntimeError: Gemini failed on all models: Gemini HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later. / RuntimeError: Gemini failed on all models: Gemini HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later. |  |  |
 | 188 | 2026-11-10 18:49 | ml_local package | local-ml-import | PASS | virality_inference imports (model load tested in e2e) |  |  |
+| 189 | 2026-11-10 19:28 | mock OpenAI server (in-process) | custom-client-unit | PASS | provider=custom routes to custom_client; Bearer key + model qwen2.5:3b sent; path /v1/chat/completions; no key -> no auth header; 401 -> clean error; dead server -> plain-language could-not-reach error. First run's 401 check failed on a wrong mock path test (endswith vs contains); test fixed, re-run 0 failures — code was never wrong | - | - |
+| 190 | 2026-11-10 19:28 | settings round-trip | settings-custom-unit | PASS | provider + custom_base_url + custom_model + custom_api_key save/load; mask sk-d...-456; public_status has custom fields, no key in it | - | - |
+| 191 | 2026-11-10 19:26 | elon-nuclear-clip01.mp4, provider=custom qwen2.5:3b, mock moments server :8151 | e2e-custom-provider | PASS | job 20261110-192642 done in ~46s; log "custom picked 1 moments"; job.json scorer=custom, clip score_source=custom 90.0; clip01.mp4 + .srt/.ass + caption pack; mock log proves model + Bearer key sent | - | - |
+| 192 | 2026-11-10 19:31 | localhost:8145 + mock probe server :8152 | custom-api-smoke | PASS | GET /api/settings lists custom + fields; POST custom key -> masked sk-d...-123, key nowhere in responses; test -> {"ok": true, "reply": "OK", "provider": "custom"}; index has custom option + 3 fields; health version 0.1.8 | - | - |
+| 193 | 2026-11-10 19:33 | package | imports | PASS | 11 modules import clean |  |  |
+| 194 | 2026-11-10 19:33 | repo files | config-paths | PASS | model + prompt + 5 licences present |  |  |
+| 195 | 2026-11-10 19:33 | synthetic 400 words | candidates-normal | PASS | 14 candidates, lengths in range |  |  |
+| 196 | 2026-11-10 19:33 | synthetic 0/3 words | candidates-empty | PASS | empty/short input -> no candidates (no crash) |  |  |
+| 197 | 2026-11-10 19:33 | synthetic hook vs filler | heuristic-ranking | PASS | hook=42.0 filler=15.4 |  |  |
+| 198 | 2026-11-10 19:33 | synthetic overlapping clips | dedupe-clips | PASS | overlap dropped, best kept |  |  |
+| 199 | 2026-11-10 19:33 | synthetic 100 words | transcript-lines | PASS | 2 lines, [mm:ss] format |  |  |
+| 200 | 2026-11-10 19:33 | synthetic 40 words | captions-all-styles | PASS | 4 styles ASS+SRT ok |  |  |
+| 201 | 2026-11-10 19:33 | synthetic braces | captions-escaping | PASS | braces stripped, no ASS injection |  |  |
+| 202 | 2026-11-10 19:33 | synthetic Hindi words | captions-hindi | PASS | Devanagari writes to ASS (shaping depends on font — see README) |  |  |
+| 203 | 2026-11-10 19:33 | synthetic 240-pt trajectory | crop-expression | PASS | 60s tracked expr 1246 chars; empty->centre |  |  |
+| 204 | 2026-11-10 19:33 | synthetic measured values | loudnorm-filter | PASS | measured + fallback strings ok |  |  |
+| 205 | 2026-11-10 19:33 | synthetic 5s 720p | render-tiny | PASS | 1080x1920, v=5.00 a=5.00 |  |  |
+| 206 | 2026-11-10 19:33 | synthetic 4s 720x1280 | render-vertical-source | PASS | vertical 720x1280 source -> 1080x1920 ok |  |  |
+| 207 | 2026-11-10 19:33 | synthetic 4s 720p | render-split-screen | PASS | split-screen 1080x1920 ok |  |  |
+| 208 | 2026-11-10 19:33 | synthetic A/V mismatch | verify-durations-rejects | PASS | mismatched A/V correctly rejected |  |  |
+| 209 | 2026-11-10 19:33 | synthetic 6s colour video | track-no-face | PASS | no-face -> centre fallback, 24 samples |  |  |
+| 210 | 2026-11-10 19:33 | nonexistent path | track-missing-file | PASS | missing file -> safe fallback dict |  |  |
+| 211 | 2026-11-10 19:33 | bad path / bad string | download-errors | PASS | bad local path / bad string -> ValueError |  |  |
+| 212 | 2026-11-10 19:33 | prompts/moment-picking.txt | prompt-loads | PASS | moment-picking prompt has all placeholders |  |  |
+| 213 | 2026-11-10 19:33 | localhost:8137 | webui-smoke | PASS | health + index + bad-job 400 ok |  |  |
+| 214 | 2026-11-10 19:33 | Gemini vault credential | gemini-probe | FAIL | RuntimeError: Gemini failed on all models: Gemini HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later. / RuntimeError: Gemini failed on all models: Gemini HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later. |  |  |
+| 215 | 2026-11-10 19:33 | ml_local package | local-ml-import | PASS | virality_inference imports (model load tested in e2e) |  |  |

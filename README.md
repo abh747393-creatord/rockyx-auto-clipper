@@ -115,7 +115,15 @@ plain download when impersonation is unavailable, errors are shown in
 plain language, and the UI has a progress stepper. Verified from a clean
 virtualenv install before release.
 
-**v0.1.7 (2026-11-10, prepared — NOT pushed yet):** AI providers — DeepSeek
+**v0.1.8 (2026-11-10, prepared — NOT pushed yet):** Custom model provider
+(Rocky: "qwen2.5:3b ... yeh mera Model hai, isko add karo AI section ka").
+AI Settings now has a fourth provider, **Custom model** — your own model on
+any OpenAI-compatible server (Ollama's /v1 endpoint, LM Studio, your own
+API): server URL + model name + optional API key. Defaults are Rocky's
+setup: URL http://localhost:11434/v1, model qwen2.5:3b. The key is sent as
+a Bearer token only when set, and is never shown except masked.
+
+**v0.1.7 (2026-11-10):** AI providers — DeepSeek
 + Ollama, so the key dance ends (Rocky: "DeepSeek ya koi or ... jis ke liye
 baar baar key ki need nahi ho"). AI Settings now has a provider switch:
 **Gemini** (as before), **DeepSeek** (one long-lived API key from

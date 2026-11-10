@@ -33,10 +33,12 @@ SETTINGS_DIR = Path.home() / ".rockyx"
 SETTINGS_PATH = SETTINGS_DIR / "settings.json"
 
 SCORERS = ["auto", "gemini", "heuristic", "local-ml"]
-PROVIDERS = ["gemini", "deepseek", "ollama"]
+PROVIDERS = ["gemini", "deepseek", "ollama", "custom"]
 DEFAULTS = {"gemini_api_key": "", "scorer": "auto", "provider": "gemini",
             "deepseek_api_key": "", "ollama_model": "qwen2.5:3b",
-            "ollama_host": "http://localhost:11434"}
+            "ollama_host": "http://localhost:11434",
+            "custom_base_url": "http://localhost:11434/v1",
+            "custom_model": "qwen2.5:3b", "custom_api_key": ""}
 
 
 def load_settings() -> dict:
@@ -58,6 +60,12 @@ def load_settings() -> dict:
                     data["ollama_model"] = raw["ollama_model"].strip()
                 if isinstance(raw.get("ollama_host"), str) and raw["ollama_host"].strip():
                     data["ollama_host"] = raw["ollama_host"].strip()
+                if isinstance(raw.get("custom_base_url"), str) and raw["custom_base_url"].strip():
+                    data["custom_base_url"] = raw["custom_base_url"].strip()
+                if isinstance(raw.get("custom_model"), str) and raw["custom_model"].strip():
+                    data["custom_model"] = raw["custom_model"].strip()
+                if isinstance(raw.get("custom_api_key"), str):
+                    data["custom_api_key"] = raw["custom_api_key"].strip()
     except Exception:
         pass
     return data
@@ -65,17 +73,21 @@ def load_settings() -> dict:
 
 def save_settings(gemini_api_key: str | None = None, scorer: str | None = None,
                   provider: str | None = None, deepseek_api_key: str | None = None,
-                  ollama_model: str | None = None, ollama_host: str | None = None) -> dict:
+                  ollama_model: str | None = None, ollama_host: str | None = None,
+                  custom_base_url: str | None = None, custom_model: str | None = None,
+                  custom_api_key: str | None = None) -> dict:
     """Merge the given values into the settings file and return the new state.
 
-    gemini_api_key="" clears the saved key (same for deepseek_api_key).
-    scorer must be in SCORERS, provider in PROVIDERS.
+    gemini_api_key="" clears the saved key (same for deepseek_api_key and
+    custom_api_key). scorer must be in SCORERS, provider in PROVIDERS.
     """
     data = load_settings()
     if gemini_api_key is not None:
         data["gemini_api_key"] = gemini_api_key.strip()
     if deepseek_api_key is not None:
         data["deepseek_api_key"] = deepseek_api_key.strip()
+    if custom_api_key is not None:
+        data["custom_api_key"] = custom_api_key.strip()
     if scorer is not None:
         if scorer not in SCORERS:
             raise ValueError(f"unknown scorer: {scorer}")
@@ -88,6 +100,10 @@ def save_settings(gemini_api_key: str | None = None, scorer: str | None = None,
         data["ollama_model"] = ollama_model.strip()
     if ollama_host is not None and ollama_host.strip():
         data["ollama_host"] = ollama_host.strip()
+    if custom_base_url is not None and custom_base_url.strip():
+        data["custom_base_url"] = custom_base_url.strip()
+    if custom_model is not None and custom_model.strip():
+        data["custom_model"] = custom_model.strip()
     SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
     SETTINGS_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
     try:
@@ -123,6 +139,24 @@ def get_ollama_host() -> str:
     return load_settings().get("ollama_host", "http://localhost:11434")
 
 
+def get_custom_base_url() -> str:
+    """The custom model's base URL from settings."""
+    return load_settings().get("custom_base_url", "http://localhost:11434/v1")
+
+
+def get_custom_model() -> str:
+    """The custom model name from settings (default qwen2.5:3b)."""
+    return load_settings().get("custom_model", "qwen2.5:3b")
+
+
+def get_custom_api_key() -> str:
+    """The custom model's API key: saved settings first, then the env var."""
+    saved = load_settings().get("custom_api_key", "")
+    if saved:
+        return saved
+    return os.environ.get("CUSTOM_API_KEY", "").strip()
+
+
 def key_source() -> str:
     """Where the active key comes from: 'settings', 'environment', or 'none'."""
     if load_settings().get("gemini_api_key"):
@@ -154,6 +188,7 @@ def public_status() -> dict:
     """Safe-to-show status: never contains any key itself."""
     key = get_gemini_key()
     dkey = get_deepseek_key()
+    ckey = get_custom_api_key()
     return {
         "provider": load_settings().get("provider", "gemini"),
         "providers": list(PROVIDERS),
@@ -165,6 +200,10 @@ def public_status() -> dict:
         "deepseek_key_source": deepseek_key_source(),
         "ollama_model": get_ollama_model(),
         "ollama_host": get_ollama_host(),
+        "custom_base_url": get_custom_base_url(),
+        "custom_model": get_custom_model(),
+        "custom_key_set": bool(ckey),
+        "custom_key_masked": mask_key(ckey),
         "scorer": load_settings().get("scorer", "auto"),
         "scorers": list(SCORERS),
     }
