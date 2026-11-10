@@ -115,7 +115,27 @@ plain download when impersonation is unavailable, errors are shown in
 plain language, and the UI has a progress stepper. Verified from a clean
 virtualenv install before release.
 
-**v0.1.4 (2026-11-10, prepared — NOT pushed yet):** font previews (Rocky:
+**v0.1.6 (2026-11-10, prepared — NOT pushed yet):** stream-clip fixes
+(Rocky: "double face and Screen And Text" on Ducky GTA VI stream clips).
+(1) Facecam guard: a small face in a corner is a webcam overlay, not a
+second speaker — split-screen no longer fires on gameplay streams, so the
+face and the screen appear once, not twice; the render also stops zooming
+into the facecam and keeps the gameplay + facecam in one centre-cropped
+frame. (2) Captions off: new "Burned-in captions" switch (UI + `--no-captions`)
+for videos that already show captions on screen. (3) Layout control: Auto /
+Single speaker / Split-screen (UI + `--layout`).
+
+**v0.1.5 (2026-11-10, prepared — NOT pushed yet):** 6 more caption styles
++ style-aware previews (Rocky: "or bhi caption styles add karo and
+preview"). Styles now total 10: Hormozi, MrBeast, Minimal, Neon + **Pop**
+(huge, thick outline), **News box** (white on a solid black box),
+**Outline** (hollow letters, spoken word fills yellow), **Fire** (orange),
+**Ocean** (cyan), **Gold**. The preview now renders the picked font IN the
+picked style — first word in the highlight colour, box/hollow included —
+so it shows exactly what the clip's captions will look like; changing the
+style refreshes the preview and the gallery.
+
+**v0.1.4 (2026-11-10, PUSHED ~17:09 PKT, commit 17b5d20):** font previews (Rocky:
 "fonts preview bhi hon"). The font picker now shows a live preview of the
 picked font under the dropdown, plus a "👁 Preview all fonts" gallery of
 all 22 fonts — click any preview to pick it. Previews are rendered on

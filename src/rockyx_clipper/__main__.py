@@ -43,6 +43,10 @@ def main(argv=None) -> int:
                        help="caption font (bundled free font; default = style font)")
     p_run.add_argument("--section", default=None, help="YouTube only: START-END seconds")
     p_run.add_argument("--no-track", action="store_true", help="centre crop, no face tracking")
+    p_run.add_argument("--no-captions", action="store_true",
+                       help="no burned-in captions (use when the source already has captions on screen, e.g. streams)")
+    p_run.add_argument("--layout", default="auto", choices=["auto", "single", "split"],
+                       help="clip layout: auto (face tracking decides), single (never split-screen), split (always split-screen)")
 
     p_serve = sub.add_parser("serve", help="start the localhost web UI")
     p_serve.add_argument("--port", type=int, default=8000)
@@ -83,6 +87,8 @@ def main(argv=None) -> int:
         "scorer": args.scorer, "section": _parse_section(args.section),
         "font": args.font or "",
         "track": not args.no_track,
+        "captions": not args.no_captions,
+        "layout": args.layout,
     }
     print(f"Rockyx Auto-Clipper v{config.VERSION} — job {job_dir}")
     try:

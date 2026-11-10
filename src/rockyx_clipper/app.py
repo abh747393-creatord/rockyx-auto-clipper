@@ -156,11 +156,11 @@ def list_fonts():
 
 
 @app.get("/api/fonts/preview")
-def font_preview(name: str = ""):
-    """PNG preview of the sample line in one bundled font (for the picker)."""
+def font_preview(name: str = "", style: str = "hormozi"):
+    """PNG preview of the sample line in one bundled font + caption style."""
     from . import preview as preview_mod
     try:
-        data = preview_mod.render_font_preview(name)
+        data = preview_mod.render_font_preview(name, style)
     except ValueError as exc:
         return JSONResponse({"error": str(exc)}, status_code=400)
     return Response(content=data, media_type="image/png")
@@ -189,6 +189,8 @@ def create_job(
     scorer: str = Form(default="auto"),
     font: str = Form(default=""),
     section: str = Form(default=""),
+    captions: str = Form(default="on"),
+    layout: str = Form(default="auto"),
 ):
     job_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     job_dir = config.JOBS_DIR / job_id
@@ -210,7 +212,9 @@ def create_job(
     opts = {"num_clips": num_clips, "min_s": min_s, "max_s": max_s, "style": style,
             "language": language, "model": model, "scorer": scorer,
             "font": font if font in config.FONTS else "",
-            "section": sec, "track": True}
+            "section": sec, "track": True,
+            "captions": captions != "off",
+            "layout": layout if layout in ("auto", "single", "split") else "auto"}
     JOBS[job_id] = {"stage": "queued", "percent": 0, "message": "queued"}
     threading.Thread(target=_run_in_thread, args=(job_id, source, opts), daemon=True).start()
     return {"job_id": job_id}
@@ -253,7 +257,8 @@ def clip_retrim(job_id: str, clip_id: str, payload: dict):
             config.JOBS_DIR / job_id, clip_id,
             new_start=payload.get("start"), new_end=payload.get("end"),
             hook_title=payload.get("hook_title"), style=payload.get("style"),
-            font=payload.get("font"))
+            font=payload.get("font"),
+            captions=payload.get("captions"), layout=payload.get("layout"))
     except Exception as exc:  # noqa: BLE001
         return JSONResponse({"error": str(exc)}, status_code=400)
     return {"ok": True, "clip": {k: v for k, v in clip.items() if k != "words"}}

@@ -58,6 +58,49 @@ def resolve_ffmpeg_bin():
             return c
     return 'ffmpeg'
 
+def _median(xs):
+    return float(np.median(xs)) if xs else 0.0
+
+
+def _is_facecam(faces: list[dict]) -> bool:
+    """True when a face cluster is a stream webcam overlay, not a speaker:
+    a small face sitting in a corner of the frame (top-left / bottom-right
+    facecam of a gameplay stream, a reaction video, a news inset). A real
+    second speaker in a podcast/interview is large and near the centre."""
+    if len(faces) < 6:
+        return False
+    med_w = _median([f["w"] for f in faces])
+    med_cx = _median([f["cx"] for f in faces])
+    med_cy = _median([f["cy"] for f in faces])
+    small = med_w < 0.15
+    corner = med_cx < 0.22 or med_cx > 0.78 or med_cy < 0.30 or med_cy > 0.70
+    return bool(small and corner)
+
+
+def decide_two_speakers(left_faces: list[dict], right_faces: list[dict],
+                        center_faces: list[dict]) -> tuple[bool, float, float]:
+    """Two-speaker split-screen decision from per-frame face records.
+
+    Returns (has_two_speakers, avg_left_x, avg_right_x). Split-screen is
+    only real when BOTH clusters are substantial, together outweigh the
+    centre, are far enough apart that the two panels do not show the same
+    region twice, and NEITHER cluster is a stream facecam."""
+    left_cx = [f["cx"] for f in left_faces]
+    right_cx = [f["cx"] for f in right_faces]
+    center_cx = [f["cx"] for f in center_faces]
+    avg_left = float(np.mean(left_cx)) if left_cx else 0.32
+    avg_right = float(np.mean(right_cx)) if right_cx else 0.68
+    has_two = (
+        len(left_cx) >= 6
+        and len(right_cx) >= 6
+        and (len(left_cx) + len(right_cx)) > len(center_cx)
+        and (avg_right - avg_left) >= 0.30
+        and not _is_facecam(left_faces)
+        and not _is_facecam(right_faces)
+    )
+    return bool(has_two), avg_left, avg_right
+
+
 def track_subject(video_path, start_time, duration, sample_fps=4):
     """
     Cinema-Grade High-Fidelity Active Speaker Tracking:
@@ -201,15 +244,18 @@ def track_subject(video_path, start_time, duration, sample_fps=4):
             "trajectory": traj
         }
 
-    # Step 3: Spatial Cluster Analysis (Dual-speaker vs Single speaker)
-    left_cluster = [x for x in all_face_centers if x < 0.44]
-    right_cluster = [x for x in all_face_centers if x > 0.56]
-    center_cluster = [x for x in all_face_centers if 0.44 <= x <= 0.56]
-
-    has_two_speakers = (len(left_cluster) >= 6 and len(right_cluster) >= 6 and (len(left_cluster) + len(right_cluster)) > len(center_cluster))
-
-    avg_left = float(np.mean(left_cluster)) if left_cluster else 0.32
-    avg_right = float(np.mean(right_cluster)) if right_cluster else 0.68
+    # Step 3: Spatial Cluster Analysis (Dual-speaker vs Single speaker).
+    # Full face records go in so a stream facecam (small, in a corner) is
+    # never mistaken for a second speaker — that was doubling the face and
+    # the screen in split-screen clips of gameplay streams.
+    left_faces = [fc for fd in frame_detections for fc in fd["faces"] if fc["cx"] < 0.44]
+    right_faces = [fc for fd in frame_detections for fc in fd["faces"] if fc["cx"] > 0.56]
+    center_faces = [fc for fd in frame_detections for fc in fd["faces"] if 0.44 <= fc["cx"] <= 0.56]
+    has_two_speakers, avg_left, avg_right = decide_two_speakers(
+        left_faces, right_faces, center_faces)
+    left_cluster = [f["cx"] for f in left_faces]
+    right_cluster = [f["cx"] for f in right_faces]
+    center_cluster = [f["cx"] for f in center_faces]
 
     if has_two_speakers:
         primary_anchor = avg_left if len(left_cluster) >= len(right_cluster) else avg_right

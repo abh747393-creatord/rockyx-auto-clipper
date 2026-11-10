@@ -150,14 +150,29 @@ def _crop_x_expression(trajectory: list[dict], clip_dur: float,
     return expr
 
 
-def render_clip(source: Path, start: float, end: float, ass_path: Path,
+def render_clip(source: Path, start: float, end: float, ass_path: Path | None,
                 out_path: Path, tracking: dict | None = None,
                 preset: str = "veryfast") -> Path:
-    """Render one vertical clip. tracking = track_subject() result or None."""
+    """Render one vertical clip. tracking = track_subject() result or None.
+    ass_path=None means no burned-in captions (source already has its own).
+
+    Stream facecam guard: a small face in a corner is a webcam overlay, not
+    the subject — zooming into it makes a giant face and loses the gameplay.
+    In that case tracking is dropped and the clip is a plain centre crop, so
+    the gameplay and the facecam stay in frame together."""
     dur = end - start
     info = probe(source)
     vstream = next(s for s in info["streams"] if s["codec_type"] == "video")
     src_w, src_h = int(vstream["width"]), int(vstream["height"])
+    if tracking:
+        avg_fw = tracking.get("avgFw") or 0
+        avg_x = tracking.get("avgX") or 0.5
+        cys = [p.get("cy", 0.5) for p in (tracking.get("trajectory") or []) if "cy" in p]
+        avg_cy = sum(cys) / len(cys) if cys else 0.5
+        small = avg_fw < 0.15
+        corner = avg_x < 0.22 or avg_x > 0.78 or avg_cy < 0.30 or avg_cy > 0.70
+        if small and corner:
+            tracking = None
     measured = measure_loudnorm(source, start, dur)
     audio_f = loudnorm_filter(measured)
 
@@ -183,12 +198,12 @@ def render_clip(source: Path, start: float, end: float, ass_path: Path,
 
     traj = (tracking or {}).get("trajectory") or []
     x_expr = _crop_x_expression(traj, dur, crop_w, src_w)
-    vf = (
-        f"crop=w={crop_w}:h={crop_h}:x='{x_expr}':y={crop_y},"
-        f"scale=1080:1920,"
-        f"{_subtitles_filter(ass_path)},"
-        f"format=yuv420p"
-    )
+    filters = [f"crop=w={crop_w}:h={crop_h}:x='{x_expr}':y={crop_y}",
+               "scale=1080:1920"]
+    if ass_path:
+        filters.append(_subtitles_filter(ass_path))
+    filters.append("format=yuv420p")
+    vf = ",".join(filters)
     cmd = [
         config.ffmpeg_bin(), "-v", "error", "-y",
         "-ss", str(start), "-t", str(dur), "-i", str(source),
@@ -200,12 +215,12 @@ def render_clip(source: Path, start: float, end: float, ass_path: Path,
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
     if proc.returncode != 0:
         # Fallback: fixed centre crop (no tracking expression).
-        vf2 = (
-            f"crop=w={crop_w}:h={crop_h}:x={(src_w - crop_w) // 2}:y={crop_y},"
-            f"scale=1080:1920,"
-            f"{_subtitles_filter(ass_path)},"
-            f"format=yuv420p"
-        )
+        filters2 = [f"crop=w={crop_w}:h={crop_h}:x={(src_w - crop_w) // 2}:y={crop_y}",
+                    "scale=1080:1920"]
+        if ass_path:
+            filters2.append(_subtitles_filter(ass_path))
+        filters2.append("format=yuv420p")
+        vf2 = ",".join(filters2)
         cmd[cmd.index("-vf") + 1] = vf2
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
         if proc.returncode != 0:
@@ -214,10 +229,11 @@ def render_clip(source: Path, start: float, end: float, ass_path: Path,
     return out_path
 
 
-def render_split_screen(source: Path, start: float, end: float, ass_path: Path,
+def render_split_screen(source: Path, start: float, end: float, ass_path: Path | None,
                         out_path: Path, tracking: dict,
                         preset: str = "veryfast") -> Path:
-    """Two-speaker stacked layout: left speaker top, right speaker bottom."""
+    """Two-speaker stacked layout: left speaker top, right speaker bottom.
+    ass_path=None means no burned-in captions."""
     dur = end - start
     info = probe(source)
     vstream = next(s for s in info["streams"] if s["codec_type"] == "video")
@@ -242,9 +258,9 @@ def render_split_screen(source: Path, start: float, end: float, ass_path: Path,
     vf = (
         f"[0:v]crop=w={panel_w}:h={panel_h}:x={x_left}:y={y0},scale=1080:960[top];"
         f"[0:v]crop=w={panel_w}:h={panel_h}:x={x_right}:y={y0},scale=1080:960[bot];"
-        f"[top][bot]vstack=inputs=2,"
-        f"{_subtitles_filter(ass_path)},"
-        f"format=yuv420p"
+        f"[top][bot]vstack=inputs=2"
+        + (f",{_subtitles_filter(ass_path)}" if ass_path else "")
+        + ",format=yuv420p"
     )
     cmd = [
         config.ffmpeg_bin(), "-v", "error", "-y",

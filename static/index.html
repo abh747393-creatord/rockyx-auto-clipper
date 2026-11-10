@@ -72,7 +72,7 @@
   </div>
   <div class="row">
     <div><label>Caption style</label>
-      <select id="style"><option value="hormozi">Hormozi</option><option value="mrbeast">MrBeast</option><option value="minimal">Minimal</option><option value="neon">Neon</option></select></div>
+      <select id="style"><option value="hormozi">Hormozi</option><option value="mrbeast">MrBeast</option><option value="minimal">Minimal</option><option value="neon">Neon</option><option value="pop">Pop</option><option value="news">News box</option><option value="outline">Outline</option><option value="fire">Fire</option><option value="ocean">Ocean</option><option value="gold">Gold</option></select></div>
     <div><label>Language</label>
       <select id="language"><option value="en">English</option><option value="auto">Auto-detect</option><option value="hi">Hindi</option><option value="ur">Urdu</option></select></div>
     <div><label>Scorer</label>
@@ -86,6 +86,13 @@
     <div id="font_grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px; margin-top:10px;"></div>
     <div class="hint">Click a preview to pick that font.</div>
   </details>
+  <div class="row">
+    <div><label>Layout</label>
+      <select id="layout"><option value="auto">Auto (face tracking decides)</option><option value="single">Single speaker</option><option value="split">Split-screen</option></select></div>
+    <div><label>Burned-in captions</label>
+      <select id="captions"><option value="on">On</option><option value="off">Off — video already has captions</option></select></div>
+  </div>
+  <div class="hint">Streams &amp; TV already show captions on screen — turn captions off so the text doesn't double. Single speaker keeps a gameplay stream in one frame instead of splitting it.</div>
   <details><summary>Advanced</summary>
     <label>Whisper model (base = fast, small = more accurate)</label>
     <select id="model"><option value="base">base</option><option value="small">small</option><option value="tiny">tiny</option></select>
@@ -170,7 +177,7 @@ async function startJob() {
   const fd = new FormData();
   fd.append('url', url);
   if (f) fd.append('file', f);
-  for (const k of ['num_clips','min_s','max_s','style','language','scorer','font','model','section'])
+  for (const k of ['num_clips','min_s','max_s','style','language','scorer','font','model','section','layout','captions'])
     fd.append(k, document.getElementById(k).value);
   const go = document.getElementById('go');
   go.disabled = true; go.textContent = '⏳ Working…';
@@ -307,20 +314,22 @@ async function loadFonts() {
 }
 function updateFontPreview() {
   const f = document.getElementById('font').value;
+  const s = document.getElementById('style').value;
   const img = document.getElementById('font_preview');
   if (!f) { img.style.display = 'none'; img.removeAttribute('src'); return; }
-  img.src = '/api/fonts/preview?name=' + encodeURIComponent(f);
+  img.src = '/api/fonts/preview?name=' + encodeURIComponent(f) + '&style=' + encodeURIComponent(s);
   img.style.display = 'block';
 }
 let gridBuilt = false;
 function buildFontGrid() {
   if (gridBuilt || !fontGroups) return;
   gridBuilt = true;
+  const s = document.getElementById('style').value;
   const grid = document.getElementById('font_grid');
   for (const [group, names] of fontGroups) {
     for (const n of names) {
       const im = document.createElement('img');
-      im.src = '/api/fonts/preview?name=' + encodeURIComponent(n);
+      im.src = '/api/fonts/preview?name=' + encodeURIComponent(n) + '&style=' + encodeURIComponent(s);
       im.alt = n; im.title = n + ' — click to pick';
       im.style.cssText = 'width:100%; border-radius:8px; border:1px solid #333; cursor:pointer;';
       im.onclick = () => { document.getElementById('font').value = n; updateFontPreview(); document.getElementById('font_gallery').open = false; };
@@ -329,6 +338,10 @@ function buildFontGrid() {
   }
 }
 document.getElementById('font').addEventListener('change', updateFontPreview);
+document.getElementById('style').addEventListener('change', () => {
+  updateFontPreview();
+  if (gridBuilt) { gridBuilt = false; document.getElementById('font_grid').innerHTML = ''; if (document.getElementById('font_gallery').open) buildFontGrid(); }
+});
 document.getElementById('font_gallery').addEventListener('toggle', (e) => { if (e.target.open) buildFontGrid(); });
 loadFonts();
 async function loadJobs() {

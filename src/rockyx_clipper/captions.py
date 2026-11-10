@@ -1,10 +1,11 @@
 """Kinetic word-by-word burned-in captions.
 
-Styles match the paid tools' caption looks (Hormozi / MrBeast / Minimal /
-Neon — same looks, our own code). Technique: the full line stays on screen
-and the *current word* is highlighted with a colour + bold override, one ASS
-event per word. This renders correctly in libass (ffmpeg subtitles filter)
-on Linux and Windows, with no karaoke-fill quirks.
+10 styles: Hormozi / MrBeast / Minimal / Neon (paid-tool looks, our own
+code) + Pop / News box / Outline (hollow) / Fire / Ocean / Gold (v0.1.5).
+Technique: the full line stays on screen and the *current word* is
+highlighted with a colour + bold override, one ASS event per word. This
+renders correctly in libass (ffmpeg subtitles filter) on Linux and Windows,
+with no karaoke-fill quirks.
 
 Fonts: 22 free OFL Google Fonts bundled in fonts/ (see config.FONTS) — the
 user picks one in the UI and libass finds it via the subtitles filter's
@@ -40,6 +41,38 @@ STYLES = {
     "neon": {
         "font_size": 68, "primary": "&H00FFFFFF", "highlight": "&H00FF80FF",
         "outline": "&H00FF00AA", "back": "&H80000000", "outline_w": 3, "shadow": 2,
+        "bold": -1, "margin_v": 300, "alignment": 2,
+    },
+    # --- v0.1.5: six more looks. Colours are ASS &HAABBGGRR. ---
+    "pop": {  # loudest: huge type, thick outline, hard shadow
+        "font_size": 84, "primary": "&H00FFFFFF", "highlight": "&H0000C8FF",
+        "outline": "&H00000000", "back": "&H80000000", "outline_w": 5, "shadow": 3,
+        "bold": -1, "margin_v": 300, "alignment": 2,
+    },
+    "news": {  # white type on a solid black box (BorderStyle 3, opaque back)
+        "font_size": 60, "primary": "&H00FFFFFF", "highlight": "&H0000C8FF",
+        "outline": "&H00000000", "back": "&H00000000", "outline_w": 0, "shadow": 0,
+        "bold": -1, "margin_v": 300, "alignment": 2, "border_style": 3,
+    },
+    "outline": {  # hollow letters: transparent fill, yellow outline;
+        # the spoken word fills solid yellow (highlight override forces opaque)
+        "font_size": 72, "primary": "&HFF000000", "highlight": "&H0000C8FF",
+        "outline": "&H0000C8FF", "back": "&H80000000", "outline_w": 4, "shadow": 1,
+        "bold": -1, "margin_v": 300, "alignment": 2,
+    },
+    "fire": {  # orange fire type, yellow highlight, dark red outline
+        "font_size": 72, "primary": "&H00356BFF", "highlight": "&H0000C8FF",
+        "outline": "&H0000008C", "back": "&H80000000", "outline_w": 3, "shadow": 2,
+        "bold": -1, "margin_v": 300, "alignment": 2,
+    },
+    "ocean": {  # cyan type, white highlight, dark blue outline
+        "font_size": 68, "primary": "&H00FFD400", "highlight": "&H00FFFFFF",
+        "outline": "&H008C3A00", "back": "&H80000000", "outline_w": 3, "shadow": 2,
+        "bold": -1, "margin_v": 300, "alignment": 2,
+    },
+    "gold": {  # gold type, white highlight, dark brown outline
+        "font_size": 70, "primary": "&H0000D7FF", "highlight": "&H00FFFFFF",
+        "outline": "&H00004E6B", "back": "&H80000000", "outline_w": 3, "shadow": 2,
         "bold": -1, "margin_v": 300, "alignment": 2,
     },
 }
@@ -117,8 +150,8 @@ def words_to_ass(words: list[dict], clip_start: float, clip_end: float,
         "ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
         "Alignment, MarginL, MarginR, MarginV, Encoding\n"
         f"Style: Cap,{font},{style['font_size']},{style['primary']},{style['primary']},"
-        f"{style['outline']},{style['back']},{style['bold']},0,0,0,100,100,0,0,1,"
-        f"{style['outline_w']},{style['shadow']},{style['alignment']},60,60,{style['margin_v']},1\n"
+        f"{style['outline']},{style['back']},{style['bold']},0,0,0,100,100,0,0,"
+        f"{style.get('border_style', 1)},{style['outline_w']},{style['shadow']},{style['alignment']},60,60,{style['margin_v']},1\n"
         f"Style: Hook,{font},54,&H0000D8FF,&H0000D8FF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,3,1,8,60,60,140,1\n\n"
         "[Events]\n"
         "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
@@ -139,7 +172,9 @@ def words_to_ass(words: list[dict], clip_start: float, clip_end: float,
             for j, lw in enumerate(line):
                 word = lw["word"].replace("{", "").replace("}", "")
                 if j == i:
-                    parts.append(f"{{\\1c{style['highlight'][4:]}\\b1}}{word}{{\\r}}")
+                    # \1a&H00& forces the spoken word fully opaque — needed
+                    # by the hollow "outline" style, whose fill is transparent.
+                    parts.append(f"{{\\1c{style['highlight'][4:]}\\1a&H00&\\b1}}{word}{{\\r}}")
                 else:
                     parts.append(word)
             text = " ".join(parts)

@@ -66,6 +66,18 @@ def _caption_pack_text(clip: dict, platform: str = "instagram") -> str:
     return "\n".join(l for l in lines if l != "" or True).strip() + "\n"
 
 
+def _decide_split(tracking: dict | None, layout: str) -> bool:
+    """Split-screen decision. layout: auto (follow face tracking) /
+    single (never split) / split (always split). Auto is what misfired on
+    gameplay streams before the facecam guard — a small corner face is a
+    webcam overlay, not a second speaker."""
+    if layout == "single":
+        return False
+    if layout == "split":
+        return True
+    return bool(tracking and tracking.get("hasTwoSpeakers"))
+
+
 def run_job(source: str, job_dir: Path, opts: dict | None = None,
             progress_cb=None) -> dict:
     opts = opts or {}
@@ -79,6 +91,8 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
     font = opts.get("font", "")  # bundled font name from config.FONTS, "" = style default
     section = opts.get("section")
     do_track = bool(opts.get("track", True))
+    captions_on = bool(opts.get("captions", True))  # False: source already has captions on screen
+    layout = str(opts.get("layout", "auto"))  # auto | single | split
     started = time.time()
 
     def progress(stage, pct, msg=""):
@@ -166,14 +180,16 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
                 tracking = track_subject(str(video), start, end - start)
             except Exception as exc:  # noqa: BLE001 - tracking is best-effort
                 print(f"[track] {cid} tracking failed, centre crop: {exc}")
-        progress("captions", 72, f"{cid}: kinetic captions ({style})")
+        progress("captions", 72, f"{cid}: kinetic captions ({style})" if captions_on else f"{cid}: captions off")
         clip_words = [w for w in words if w["end"] > start and w["start"] < end]
-        split = bool(tracking and tracking.get("hasTwoSpeakers"))
-        ass_path = cdir / f"{cid}.ass"
-        captions_mod.words_to_ass(
-            clip_words, start, end, style_name=style,
-            hook_title=clip.get("hook_title", ""),
-            out_path=ass_path, margin_v=860 if split else None, font=font)
+        split = _decide_split(tracking, layout)
+        ass_path = None
+        if captions_on:
+            ass_path = cdir / f"{cid}.ass"
+            captions_mod.words_to_ass(
+                clip_words, start, end, style_name=style,
+                hook_title=clip.get("hook_title", ""),
+                out_path=ass_path, margin_v=860 if split else None, font=font)
         srt_path = cdir / f"{cid}.srt"
         captions_mod.words_to_srt(clip_words, start, end, out_path=srt_path)
 
@@ -187,7 +203,8 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
         cap = dict(clip)
         cap.update({
             "id": cid, "file": str(out_path), "srt": str(srt_path),
-            "ass": str(ass_path), "split_screen": split, "font": font,
+            "ass": str(ass_path) if ass_path else None, "split_screen": split, "font": font,
+            "captions": captions_on, "layout": layout,
             "tracking": {"hasTwoSpeakers": bool(tracking and tracking.get("hasTwoSpeakers")),
                          "avgX": (tracking or {}).get("avgX"),
                          "avgFw": (tracking or {}).get("avgFw")},
@@ -203,7 +220,8 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
         "job": job_dir.name, "source": str(video), "title": meta.get("title"),
         "duration": src_dur, "language": transcript.get("language"),
         "num_words": len(words), "scorer": "gemini" if gemini_ok else "heuristic",
-        "style": style, "elapsed_s": round(time.time() - started, 1),
+        "style": style, "captions": captions_on, "layout": layout,
+        "elapsed_s": round(time.time() - started, 1),
         "clips": [{k: v for k, v in c.items() if k != "words"} for c in clips_out],
     }
     (job_dir / "job.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
@@ -214,7 +232,8 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
 def retrim_clip(job_dir: Path, clip_id: str, new_start: float | None = None,
                 new_end: float | None = None, hook_title: str | None = None,
                 style: str | None = None, progress_cb=None,
-                font: str | None = None) -> dict:
+                font: str | None = None, captions: bool | None = None,
+                layout: str | None = None) -> dict:
     """Re-render one clip with edited start/end/title/style (transcript editor)."""
     job_dir = Path(job_dir)
     summary = json.loads((job_dir / "job.json").read_text(encoding="utf-8"))
@@ -227,6 +246,8 @@ def retrim_clip(job_dir: Path, clip_id: str, new_start: float | None = None,
         raise ValueError("clip must be at least 5 seconds")
     style = style or summary.get("style", config.DEFAULT_CAPTION_STYLE)
     font = font if font is not None else clip.get("font", "")
+    captions_on = summary.get("captions", True) if captions is None else bool(captions)
+    layout = layout or summary.get("layout", "auto")
     hook = hook_title if hook_title is not None else clip.get("hook_title", "")
     video = Path(summary["source"])
     cdir = job_dir / "clips" / clip_id
@@ -236,11 +257,13 @@ def retrim_clip(job_dir: Path, clip_id: str, new_start: float | None = None,
     except Exception as exc:  # noqa: BLE001
         print(f"[retrim] tracking failed, centre crop: {exc}")
     clip_words = [w for w in words if w["end"] > start and w["start"] < end]
-    split = bool(tracking and tracking.get("hasTwoSpeakers"))
-    ass_path = cdir / f"{clip_id}.ass"
-    captions_mod.words_to_ass(clip_words, start, end, style_name=style,
-                              hook_title=hook, out_path=ass_path,
-                              margin_v=860 if split else None, font=font)
+    split = _decide_split(tracking, layout)
+    ass_path = None
+    if captions_on:
+        ass_path = cdir / f"{clip_id}.ass"
+        captions_mod.words_to_ass(clip_words, start, end, style_name=style,
+                                  hook_title=hook, out_path=ass_path,
+                                  margin_v=860 if split else None, font=font)
     captions_mod.words_to_srt(clip_words, start, end, out_path=cdir / f"{clip_id}.srt")
     out_path = cdir / f"{clip_id}.mp4"
     if split:
@@ -248,6 +271,7 @@ def retrim_clip(job_dir: Path, clip_id: str, new_start: float | None = None,
     else:
         render_mod.render_clip(video, start, end, ass_path, out_path, tracking)
     clip.update({"start": start, "end": end, "hook_title": hook, "split_screen": split,
+                 "captions": captions_on, "layout": layout,
                  "text": " ".join(w["word"] for w in clip_words)})
     (cdir / "clip.json").write_text(json.dumps(clip, indent=2), encoding="utf-8")
     for platform in ("instagram", "tiktok", "youtube"):
