@@ -134,6 +134,8 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
     picked: list[dict] = []
     gemini_ok = False
     if scorer in ("auto", "gemini"):
+        from . import llm as llm_mod
+        provider = llm_mod.active_provider()
         try:
             g = score_mod.gemini_pick_moments(words, num_clips=num_clips,
                                               min_s=min_s, max_s=max_s,
@@ -141,9 +143,9 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
             if g:
                 picked = g
                 gemini_ok = True
-                progress("score", 60, f"Gemini picked {len(g)} moments")
-        except Exception as exc:  # noqa: BLE001 - Gemini failure falls back to heuristic
-            print(f"[score] Gemini failed, using heuristic: {exc}")
+                progress("score", 60, f"{provider} picked {len(g)} moments")
+        except Exception as exc:  # noqa: BLE001 - provider failure falls back to heuristic
+            print(f"[score] {provider} failed, using heuristic: {exc}")
     if len(picked) < num_clips:
         for c in ranked:
             if len(picked) >= num_clips:
@@ -219,7 +221,8 @@ def run_job(source: str, job_dir: Path, opts: dict | None = None,
     summary = {
         "job": job_dir.name, "source": str(video), "title": meta.get("title"),
         "duration": src_dur, "language": transcript.get("language"),
-        "num_words": len(words), "scorer": "gemini" if gemini_ok else "heuristic",
+        "num_words": len(words),
+        "scorer": (llm_mod.active_provider() if gemini_ok else "heuristic"),
         "style": style, "captions": captions_on, "layout": layout,
         "elapsed_s": round(time.time() - started, 1),
         "clips": [{k: v for k, v in c.items() if k != "words"} for c in clips_out],

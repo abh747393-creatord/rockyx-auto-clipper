@@ -115,7 +115,19 @@ plain download when impersonation is unavailable, errors are shown in
 plain language, and the UI has a progress stepper. Verified from a clean
 virtualenv install before release.
 
-**v0.1.6 (2026-11-10, prepared — NOT pushed yet):** stream-clip fixes
+**v0.1.7 (2026-11-10, prepared — NOT pushed yet):** AI providers — DeepSeek
++ Ollama, so the key dance ends (Rocky: "DeepSeek ya koi or ... jis ke liye
+baar baar key ki need nahi ho"). AI Settings now has a provider switch:
+**Gemini** (as before), **DeepSeek** (one long-lived API key from
+platform.deepseek.com, saved once — it does not expire, ~$0.14/1M tokens),
+or **Ollama** (a small model running on your own computer — NO key at all:
+install from ollama.com, `ollama pull qwen2.5:3b`). Test key now tests the
+active provider. Also fixed the Gemini model list: gemini-2.5-flash and
+gemini-2.0-flash are retired (HTTP 404, verified live) — only
+gemini-3.8-flash is current, and it was returning HTTP 503 (high demand)
+at test time, which is why Gemini scoring was failing.
+
+**v0.1.6 (2026-11-10):** stream-clip fixes
 (Rocky: "double face and Screen And Text" on Ducky GTA VI stream clips).
 (1) Facecam guard: a small face in a corner is a webcam overlay, not a
 second speaker — split-screen no longer fires on gameplay streams, so the

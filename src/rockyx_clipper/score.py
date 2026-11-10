@@ -233,8 +233,9 @@ def score_candidates_heuristic(candidates: list[dict]) -> list[dict]:
 def gemini_pick_moments(words: list[dict], num_clips: int = 3,
                         min_s: float = 30.0, max_s: float = 60.0,
                         language: str = "en") -> list[dict] | None:
-    """Ask Gemini to pick the strongest moments. Returns clips or None."""
-    from . import gemini_client
+    """Ask the active AI provider (Gemini / DeepSeek / Ollama, see llm.py)
+    to pick the strongest moments. Returns clips or None."""
+    from . import llm as llm_mod
 
     prompt_path = config.PROMPTS_DIR / "moment-picking.txt"
     template = prompt_path.read_text(encoding="utf-8")
@@ -244,7 +245,7 @@ def gemini_pick_moments(words: list[dict], num_clips: int = 3,
         num_clips=num_clips, min_s=int(min_s), max_s=int(max_s),
         duration=round(duration, 1), language=language, transcript=transcript,
     )
-    raw = gemini_client.generate_text(
+    raw = llm_mod.generate_text(
         prompt,
         system="You are a short-form video editor. Reply with JSON only.",
         max_tokens=4000, temperature=0.7,
@@ -271,7 +272,7 @@ def gemini_pick_moments(words: list[dict], num_clips: int = 3,
             "text": " ".join(w["word"] for w in seg_words),
             "words": seg_words,
             "score": float(c.get("virality_score", c.get("score", 50))),
-            "score_source": "gemini",
+            "score_source": llm_mod.active_provider(),
             "reason": str(c.get("reason", ""))[:300],
             "title": str(c.get("title", ""))[:120],
             "hook_title": str(c.get("hook_title", c.get("title", "")))[:120],

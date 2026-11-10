@@ -120,15 +120,26 @@ def get_settings():
 
 @app.post("/api/settings")
 def save_settings(payload: dict):
-    """Save the Gemini API key and/or default scorer.
+    """Save AI settings: provider, keys, Ollama model/host, default scorer.
 
-    Send {"gemini_api_key": "<key>"} to save, {"gemini_api_key": ""} to clear,
-    {"scorer": "auto"|"gemini"|"heuristic"|"local-ml"} to change the default.
-    The key is stored only on this machine (~/.rockyx/settings.json).
+    Send {"provider": "gemini"|"deepseek"|"ollama"} to switch provider,
+    {"gemini_api_key": "<key>"} / {"deepseek_api_key": "<key>"} to save a
+    key ("" clears it), {"ollama_model": "..."} / {"ollama_host": "..."}
+    for local Ollama, {"scorer": "auto"|"gemini"|"heuristic"|"local-ml"}
+    to change the default. Keys are stored only on this machine
+    (~/.rockyx/settings.json).
     """
     try:
         if "gemini_api_key" in payload:
             settings_mod.save_settings(gemini_api_key=str(payload.get("gemini_api_key") or ""))
+        if "deepseek_api_key" in payload:
+            settings_mod.save_settings(deepseek_api_key=str(payload.get("deepseek_api_key") or ""))
+        if "provider" in payload:
+            settings_mod.save_settings(provider=str(payload.get("provider") or "gemini"))
+        if "ollama_model" in payload:
+            settings_mod.save_settings(ollama_model=str(payload.get("ollama_model") or ""))
+        if "ollama_host" in payload:
+            settings_mod.save_settings(ollama_host=str(payload.get("ollama_host") or ""))
         if "scorer" in payload:
             settings_mod.save_settings(scorer=str(payload.get("scorer") or "auto"))
     except ValueError as exc:
@@ -138,14 +149,14 @@ def save_settings(payload: dict):
 
 @app.post("/api/settings/test")
 def test_settings():
-    """One tiny Gemini call to check the saved key works. Returns OK or a
-    plain-language error; the key is never echoed back."""
-    from . import gemini_client
+    """One tiny call through the ACTIVE provider to check it works.
+    Returns OK or a plain-language error; no key is ever echoed back."""
+    from . import llm as llm_mod
     try:
-        reply = gemini_client.probe()
+        reply = llm_mod.probe()
     except Exception as exc:  # noqa: BLE001 - surfaced as a plain message
         return {"ok": False, "error": str(exc)}
-    return {"ok": True, "reply": reply}
+    return {"ok": True, "reply": reply, "provider": llm_mod.active_provider()}
 
 
 @app.get("/api/fonts")

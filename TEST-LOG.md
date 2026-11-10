@@ -166,3 +166,31 @@ mistakes found, fix applied, retest result. Never fake a count.
 | 158 | 2026-11-10 17:38 | elon-nuclear-clip01.mp4, --no-captions vs default | captions-off-e2e | PASS | no .ass, .srt kept, job.json captions=false, captioned vs no-caption frames differ in caption band (mean abs diff 8.1) | - | - |
 | 159 | 2026-11-10 17:41 | localhost:8143, API job captions=off layout=single | api-smoke-new-fields | PASS | job 20261110-174120 done; job.json captions=false layout=single split_screen=false ass=None; no .ass file. First POST raced server startup (empty response); retry OK | - | - |
 | 160 | 2026-11-10 17:40 | _decide_split | layout-unit | PASS | auto follows tracking; single never splits; split always splits; unknown layout falls back to tracking | - | - |
+| 161 | 2026-11-10 18:14 | provider dispatcher (deepseek/ollama/gemini) | provider-dispatch-unit | PASS | deepseek dummy key -> HTTP 401 in 0.6s (key sent as Bearer); ollama no server -> plain-language not-running error; unknown provider -> gemini; MODELS == [gemini-3.8-flash]. First 161a run hit a 120s transient egress stall; re-run 0.6s PASS, code unchanged | - | - |
+| 162 | 2026-11-10 18:14 | settings round-trip | settings-provider-unit | PASS | provider + deepseek key + ollama model/host save/load; mask sk-t...1234; public_status has new fields, no key in it; unknown provider/scorer ValueError; corrupt file -> defaults | - | - |
+| 163 | 2026-11-10 18:21 | elon-nuclear-clip01.mp4, provider=deepseek dummy key, scorer auto | e2e-provider-fallback | PASS | job 20261110-182142 done in ~46s; job.json scorer=heuristic (DeepSeek 401 -> heuristic fallback); clip01.mp4 1080x1920 31.9s + .srt/.ass + hook/hashtags | - | - |
+| 164 | 2026-11-10 18:23 | localhost:8144 | provider-api-smoke | PASS | GET /api/settings has new fields; POST deepseek key -> masked sk-d...7890, key nowhere in responses; test deepseek -> DeepSeek HTTP 401; test ollama -> not-running error; index has provider select + deepseek input + ollama note; health version 0.1.7 | - | - |
+| 165 | 2026-11-10 18:24 | gemini_client.probe() via vault | gemini-model-fix-live | PASS | MODELS fixed: no 404, request reached gemini-3.8-flash in 0.9s; HTTP 503 high demand — same 503 seen on Rocky's key and the vault key, i.e. live Gemini overload, not a code/key problem | - | - |
+| 166 | 2026-11-10 18:48 | package | imports | PASS | 11 modules import clean |  |  |
+| 167 | 2026-11-10 18:48 | repo files | config-paths | PASS | model + prompt + 5 licences present |  |  |
+| 168 | 2026-11-10 18:48 | synthetic 400 words | candidates-normal | PASS | 14 candidates, lengths in range |  |  |
+| 169 | 2026-11-10 18:48 | synthetic 0/3 words | candidates-empty | PASS | empty/short input -> no candidates (no crash) |  |  |
+| 170 | 2026-11-10 18:48 | synthetic hook vs filler | heuristic-ranking | PASS | hook=42.0 filler=15.4 |  |  |
+| 171 | 2026-11-10 18:48 | synthetic overlapping clips | dedupe-clips | PASS | overlap dropped, best kept |  |  |
+| 172 | 2026-11-10 18:48 | synthetic 100 words | transcript-lines | PASS | 2 lines, [mm:ss] format |  |  |
+| 173 | 2026-11-10 18:48 | synthetic 40 words | captions-all-styles | PASS | 4 styles ASS+SRT ok |  |  |
+| 174 | 2026-11-10 18:48 | synthetic braces | captions-escaping | PASS | braces stripped, no ASS injection |  |  |
+| 175 | 2026-11-10 18:48 | synthetic Hindi words | captions-hindi | PASS | Devanagari writes to ASS (shaping depends on font — see README) |  |  |
+| 176 | 2026-11-10 18:48 | synthetic 240-pt trajectory | crop-expression | PASS | 60s tracked expr 1246 chars; empty->centre |  |  |
+| 177 | 2026-11-10 18:48 | synthetic measured values | loudnorm-filter | PASS | measured + fallback strings ok |  |  |
+| 178 | 2026-11-10 18:48 | synthetic 5s 720p | render-tiny | PASS | 1080x1920, v=5.00 a=5.00 |  |  |
+| 179 | 2026-11-10 18:48 | synthetic 4s 720x1280 | render-vertical-source | PASS | vertical 720x1280 source -> 1080x1920 ok |  |  |
+| 180 | 2026-11-10 18:48 | synthetic 4s 720p | render-split-screen | PASS | split-screen 1080x1920 ok |  |  |
+| 181 | 2026-11-10 18:48 | synthetic A/V mismatch | verify-durations-rejects | PASS | mismatched A/V correctly rejected |  |  |
+| 182 | 2026-11-10 18:48 | synthetic 6s colour video | track-no-face | PASS | no-face -> centre fallback, 24 samples |  |  |
+| 183 | 2026-11-10 18:48 | nonexistent path | track-missing-file | PASS | missing file -> safe fallback dict |  |  |
+| 184 | 2026-11-10 18:48 | bad path / bad string | download-errors | PASS | bad local path / bad string -> ValueError |  |  |
+| 185 | 2026-11-10 18:48 | prompts/moment-picking.txt | prompt-loads | PASS | moment-picking prompt has all placeholders |  |  |
+| 186 | 2026-11-10 18:48 | localhost:8137 | webui-smoke | PASS | health + index + bad-job 400 ok |  |  |
+| 187 | 2026-11-10 18:49 | Gemini vault credential | gemini-probe | FAIL | RuntimeError: Gemini failed on all models: Gemini HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later. / RuntimeError: Gemini failed on all models: Gemini HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later. |  |  |
+| 188 | 2026-11-10 18:49 | ml_local package | local-ml-import | PASS | virality_inference imports (model load tested in e2e) |  |  |

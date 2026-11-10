@@ -9,7 +9,7 @@ import os
 import shutil
 from pathlib import Path
 
-VERSION = "0.1.6"
+VERSION = "0.1.7"
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 SRC_DIR = ROOT / "src" / "rockyx_clipper"

@@ -76,7 +76,7 @@
     <div><label>Language</label>
       <select id="language"><option value="en">English</option><option value="auto">Auto-detect</option><option value="hi">Hindi</option><option value="ur">Urdu</option></select></div>
     <div><label>Scorer</label>
-      <select id="scorer"><option value="auto">Auto (Gemini → heuristic)</option><option value="gemini">Gemini AI</option><option value="heuristic">Local heuristic</option><option value="local-ml">Local ML model</option></select></div>
+      <select id="scorer"><option value="auto">Auto (AI → heuristic)</option><option value="gemini">AI provider</option><option value="heuristic">Local heuristic</option><option value="local-ml">Local ML model</option></select></div>
   </div>
   <label>Caption font</label>
   <select id="font"><option value="">Style default</option></select>
@@ -120,13 +120,31 @@
 
 <div class="card">
   <h3 style="margin:0 0 4px">🤖 AI Settings</h3>
-  <p class="meta" style="margin:0 0 8px">Gemini AI picks the best moments and writes hooks + hashtags. Without a key, the clipper uses the built-in local scorer instead — clips still work.</p>
+  <p class="meta" style="margin:0 0 8px">AI picks the best moments and writes hooks + hashtags. Without AI, the clipper uses the built-in local scorer instead — clips still work.</p>
   <div id="key_status" class="meta">Checking…</div>
-  <label>Gemini API key</label>
-  <input type="password" id="api_key" placeholder="Paste your Gemini API key here">
-  <div class="hint">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#7fd4ff">Google AI Studio</a>. Saved only on this computer (in a settings file outside the project) — never uploaded, shared, or put in the code.</div>
+  <label>AI provider</label>
+  <select id="ai_provider" onchange="showProviderFields()">
+    <option value="gemini">Gemini (Google AI Studio key)</option>
+    <option value="deepseek">DeepSeek (one key, saved once — very cheap)</option>
+    <option value="ollama">Ollama — local, no key at all</option>
+  </select>
+  <div id="gemini_fields">
+    <label>Gemini API key</label>
+    <input type="password" id="api_key" placeholder="Paste your Gemini API key here">
+    <div class="hint">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#7fd4ff">Google AI Studio</a>. Saved only on this computer (in a settings file outside the project) — never uploaded, shared, or put in the code.</div>
+  </div>
+  <div id="deepseek_fields" style="display:none">
+    <label>DeepSeek API key</label>
+    <input type="password" id="deepseek_key" placeholder="Paste your DeepSeek API key here">
+    <div class="hint">Get a key at <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#7fd4ff">platform.deepseek.com</a> — one key, saved once, it does not expire. Very cheap (about $0.14 per 1M words in). Saved only on this computer — never uploaded, shared, or put in the code.</div>
+  </div>
+  <div id="ollama_fields" style="display:none">
+    <div class="hint">No key needed — Ollama runs a small AI model on your own computer. Install it from <a href="https://ollama.com" target="_blank" style="color:#7fd4ff">ollama.com</a>, then in a terminal run: <code>ollama pull qwen2.5:3b</code> (about 2 GB, one time). The clipper talks to it at http://localhost:11434.</div>
+    <label>Ollama model</label>
+    <input type="text" id="ollama_model" placeholder="qwen2.5:3b">
+  </div>
   <label>Default scorer</label>
-  <select id="default_scorer"><option value="auto">Auto (Gemini → local)</option><option value="gemini">Gemini AI</option><option value="heuristic">Local heuristic</option><option value="local-ml">Local ML model</option></select>
+  <select id="default_scorer"><option value="auto">Auto (AI → local)</option><option value="gemini">AI provider</option><option value="heuristic">Local heuristic</option><option value="local-ml">Local ML model</option></select>
   <button class="ghost" onclick="saveSettings()">💾 Save AI settings</button>
   <button class="ghost" onclick="testKey()">🔑 Test key</button>
   <button class="ghost" onclick="removeKey()">🗑 Remove key</button>
@@ -259,26 +277,44 @@ async function schedule(jobId, clipId) {
   const j = await r.json();
   document.getElementById('sc-'+clipId).textContent = j.ok ? ' ✅ saved' : ' ❌ failed';
 }
+function showProviderFields() {
+  const p = document.getElementById('ai_provider').value;
+  document.getElementById('gemini_fields').style.display = p === 'gemini' ? '' : 'none';
+  document.getElementById('deepseek_fields').style.display = p === 'deepseek' ? '' : 'none';
+  document.getElementById('ollama_fields').style.display = p === 'ollama' ? '' : 'none';
+}
 async function loadSettings() {
   try {
     const r = await fetch('/api/settings'); const s = await r.json();
     document.getElementById('default_scorer').value = s.scorer || 'auto';
     document.getElementById('scorer').value = s.scorer || 'auto';
+    document.getElementById('ai_provider').value = s.provider || 'gemini';
+    document.getElementById('ollama_model').value = s.ollama_model || 'qwen2.5:3b';
+    showProviderFields();
     const ks = document.getElementById('key_status');
-    if (s.gemini_key_set) ks.textContent = '✅ Gemini AI: key saved (' + s.gemini_key_masked + ', via ' + s.gemini_key_source + ')';
+    if (s.provider === 'deepseek') {
+      ks.textContent = s.deepseek_key_set ? '✅ DeepSeek: key saved (' + s.deepseek_key_masked + ', via ' + s.deepseek_key_source + ') — one key, no expiry.' : '⚪ DeepSeek: no key — paste one below to turn on DeepSeek.';
+    } else if (s.provider === 'ollama') {
+      ks.textContent = '✅ Ollama (local): no key needed — model ' + (s.ollama_model || 'qwen2.5:3b') + ' on ' + (s.ollama_host || 'http://localhost:11434') + '.';
+    } else if (s.gemini_key_set) ks.textContent = '✅ Gemini AI: key saved (' + s.gemini_key_masked + ', via ' + s.gemini_key_source + ')';
     else ks.textContent = '⚪ Gemini AI: no key — using local scoring. Paste a key below to turn on Gemini.';
   } catch (e) { document.getElementById('key_status').textContent = 'Could not load AI settings.'; }
 }
 async function saveSettings() {
   const msg = document.getElementById('settings_msg');
   msg.textContent = ' saving…';
-  const body = { scorer: document.getElementById('default_scorer').value };
+  const body = { scorer: document.getElementById('default_scorer').value, provider: document.getElementById('ai_provider').value };
   const k = document.getElementById('api_key').value.trim();
   if (k) body.gemini_api_key = k;
+  const dk = document.getElementById('deepseek_key').value.trim();
+  if (dk) body.deepseek_api_key = dk;
+  const om = document.getElementById('ollama_model').value.trim();
+  if (om) body.ollama_model = om;
   const r = await fetch('/api/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
   const s = await r.json();
   if (s.error) { msg.textContent = ' ❌ ' + s.error; return; }
   document.getElementById('api_key').value = '';
+  document.getElementById('deepseek_key').value = '';
   document.getElementById('scorer').value = s.scorer || 'auto';
   msg.textContent = ' ✅ saved';
   loadSettings();
@@ -288,12 +324,14 @@ async function testKey() {
   msg.textContent = ' testing…';
   const r = await fetch('/api/settings/test', {method:'POST'});
   const j = await r.json();
-  msg.textContent = j.ok ? ' ✅ key works — Gemini replied "' + j.reply + '"' : ' ❌ ' + (j.error || 'failed');
+  msg.textContent = j.ok ? ' ✅ ' + (j.provider || 'AI') + ' works — replied "' + j.reply + '"' : ' ❌ ' + (j.error || 'failed');
 }
 async function removeKey() {
   const msg = document.getElementById('settings_msg');
   msg.textContent = ' removing…';
-  const r = await fetch('/api/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({gemini_api_key: ''})});
+  const p = document.getElementById('ai_provider').value;
+  const body = p === 'deepseek' ? {deepseek_api_key: ''} : {gemini_api_key: ''};
+  const r = await fetch('/api/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
   const s = await r.json();
   msg.textContent = s.error ? ' ❌ ' + s.error : ' ✅ key removed';
   loadSettings();

@@ -23,7 +23,9 @@ except Exception:  # pragma: no cover - running outside Muse (e.g. Rocky's PC)
 
 ALLOWED_HOSTS = ["generativelanguage.googleapis.com"]
 ENDPOINT_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-MODELS = ["gemini-2.5-flash", "gemini-3.8-flash"]
+# 2026-11-10 (verified live): gemini-2.5-flash and gemini-2.0-flash return
+# HTTP 404 "no longer available" — only gemini-3.8-flash is current.
+MODELS = ["gemini-3.8-flash"]
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
