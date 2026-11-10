@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rockyx Auto-Clipper — free, local, no watermark</title>
+<style>
+  body { font-family: system-ui, Arial, sans-serif; background:#111; color:#eee; margin:0; padding:24px; }
+  h1 { font-size:22px; margin:0 0 4px; } h1 span { color:#ffd60a; }
+  p.sub { color:#aaa; margin:0 0 20px; }
+  .card { background:#1c1c1c; border:1px solid #333; border-radius:12px; padding:16px; margin-bottom:16px; }
+  label { display:block; font-size:13px; color:#bbb; margin:10px 0 4px; }
+  input[type=text], input[type=number], select, input[type=datetime-local] {
+    width:100%; box-sizing:border-box; background:#222; color:#eee; border:1px solid #444;
+    border-radius:8px; padding:9px; font-size:14px; }
+  .row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  button { background:#ffd60a; color:#111; border:0; border-radius:8px; padding:11px 18px;
+    font-weight:700; font-size:15px; cursor:pointer; margin-top:14px; }
+  button.ghost { background:#333; color:#eee; font-weight:400; }
+  #progress { height:10px; background:#333; border-radius:6px; overflow:hidden; margin-top:12px; display:none; }
+  #bar { height:100%; width:0%; background:#ffd60a; }
+  #status { color:#ffd60a; margin-top:8px; font-size:14px; }
+  .clips { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+  .clip video { width:100%; border-radius:10px; background:#000; }
+  .score { font-size:26px; font-weight:800; color:#ffd60a; }
+  .meta { font-size:13px; color:#bbb; line-height:1.5; }
+  .meta b { color:#eee; }
+  .tags { color:#7fd4ff; font-size:13px; }
+  .links a { color:#ffd60a; margin-right:12px; font-size:13px; }
+  .retrim input { width:80px; display:inline-block; margin-right:6px; }
+  .retrim { font-size:13px; margin-top:10px; border-top:1px solid #333; padding-top:10px; }
+  details { font-size:13px; color:#aaa; } summary { cursor:pointer; color:#eee; }
+</style>
+</head>
+<body>
+<h1>🎬 Rocky<span>x</span> Auto-Clipper</h1>
+<p class="sub">Long video → viral vertical clips with captions. Free forever, no watermark, no minute limits. Runs 100% on your computer.</p>
+
+<div class="card">
+  <label>YouTube URL</label>
+  <input type="text" id="url" placeholder="https://www.youtube.com/watch?v=...">
+  <label>…or upload a video file</label>
+  <input type="file" id="file" accept="video/*">
+  <div class="row">
+    <div><label>Clips</label><input type="number" id="num_clips" value="3" min="1" max="10"></div>
+    <div><label>Min seconds</label><input type="number" id="min_s" value="30" min="10" max="120"></div>
+    <div><label>Max seconds</label><input type="number" id="max_s" value="60" min="15" max="180"></div>
+  </div>
+  <div class="row">
+    <div><label>Caption style</label>
+      <select id="style"><option value="hormozi">Hormozi</option><option value="mrbeast">MrBeast</option><option value="minimal">Minimal</option><option value="neon">Neon</option></select></div>
+    <div><label>Language</label>
+      <select id="language"><option value="en">English</option><option value="auto">Auto-detect</option><option value="hi">Hindi</option><option value="ur">Urdu</option></select></div>
+    <div><label>Scorer</label>
+      <select id="scorer"><option value="auto">Auto (Gemini → heuristic)</option><option value="gemini">Gemini AI</option><option value="heuristic">Local heuristic</option><option value="local-ml">Local ML model</option></select></div>
+  </div>
+  <details><summary>Advanced</summary>
+    <label>Whisper model (base = fast, small = more accurate)</label>
+    <select id="model"><option value="base">base</option><option value="small">small</option><option value="tiny">tiny</option></select>
+    <label>YouTube section only (optional, START-END seconds, e.g. 600-1500)</label>
+    <input type="text" id="section" placeholder="600-1500">
+  </details>
+  <button id="go" onclick="startJob()">✂️ Make clips</button>
+  <div id="progress"><div id="bar"></div></div>
+  <div id="status"></div>
+</div>
+
+<div id="results"></div>
+
+<div class="card">
+  <h3 style="margin:0 0 8px">Recent jobs</h3>
+  <div id="jobs" class="meta">loading…</div>
+</div>
+
+<script>
+let timer = null;
+async function startJob() {
+  const fd = new FormData();
+  fd.append('url', document.getElementById('url').value);
+  const f = document.getElementById('file').files[0];
+  if (f) fd.append('file', f);
+  for (const k of ['num_clips','min_s','max_s','style','language','scorer','model','section'])
+    fd.append(k, document.getElementById(k).value);
+  document.getElementById('go').disabled = true;
+  document.getElementById('progress').style.display = 'block';
+  document.getElementById('status').textContent = 'Starting…';
+  const r = await fetch('/api/jobs', {method:'POST', body: fd});
+  const j = await r.json();
+  if (j.error) { document.getElementById('status').textContent = 'Error: ' + j.error; document.getElementById('go').disabled = false; return; }
+  poll(j.job_id);
+}
+function poll(jobId) {
+  if (timer) clearInterval(timer);
+  timer = setInterval(async () => {
+    const r = await fetch('/api/jobs/' + jobId);
+    const j = await r.json();
+    document.getElementById('bar').style.width = (j.percent||0) + '%';
+    document.getElementById('status').textContent = (j.stage||'') + ' — ' + (j.message||'');
+    if (j.stage === 'done' || j.stage === 'error') {
+      clearInterval(timer);
+      document.getElementById('go').disabled = false;
+      if (j.stage === 'done') renderResults(j);
+      else document.getElementById('status').textContent = 'Error: ' + (j.error||j.message);
+      loadJobs();
+    }
+  }, 2000);
+}
+function esc(s){ return String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function renderResults(j) {
+  const s = j.summary;
+  let html = `<div class="card"><h3 style="margin:0 0 6px">✅ ${esc(s.title||'Done')} — ${s.clips.length} clips in ${s.elapsed_s}s (scorer: ${esc(s.scorer)}, ${esc(s.language||'')})</h3></div><div class="clips">`;
+  for (const c of s.clips) {
+    html += `<div class="card clip">
+      <video controls preload="metadata" src="/api/jobs/${j.job_id}/clips/${c.id}/video"></video>
+      <div><span class="score">${c.score}/100</span> <span class="meta">(${esc(c.score_source||'')}) ${c.split_screen ? '· 👥 split-screen' : ''}</span></div>
+      <div class="meta"><b>${esc(c.hook_title||c.title||'')}</b><br>${esc(c.reason||'')}<br>
+      ${c.start}s – ${c.end}s · ${esc(c.text||'').slice(0,120)}…</div>
+      <div class="tags">${(c.hashtags||[]).map(h=>'#'+esc(h)).join(' ')}</div>
+      <div class="links">
+        <a href="/api/jobs/${j.job_id}/clips/${c.id}/video" download>⬇ video</a>
+        <a href="/api/jobs/${j.job_id}/clips/${c.id}/caption/instagram" download>caption IG</a>
+        <a href="/api/jobs/${j.job_id}/clips/${c.id}/caption/tiktok" download>caption TikTok</a>
+        <a href="/api/jobs/${j.job_id}/clips/${c.id}/srt" download>.srt</a>
+      </div>
+      <div class="retrim">✏️ Edit &amp; re-render<br>
+        start <input type="number" id="s-${c.id}" value="${c.start}" step="0.5">
+        end <input type="number" id="e-${c.id}" value="${c.end}" step="0.5">
+        hook <input type="text" id="h-${c.id}" value="${esc(c.hook_title||'')}" style="width:130px">
+        <button class="ghost" onclick="retrim('${j.job_id}','${c.id}')">Re-render</button>
+        <span id="r-${c.id}"></span><br>
+        📅 Schedule: <select id="p-${c.id}"><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="youtube">YouTube</option></select>
+        <input type="datetime-local" id="w-${c.id}" style="width:170px">
+        <button class="ghost" onclick="schedule('${j.job_id}','${c.id}')">Save</button>
+        <span id="sc-${c.id}"></span>
+      </div>
+    </div>`;
+  }
+  document.getElementById('results').innerHTML = html + '</div>';
+}
+async function retrim(jobId, clipId) {
+  document.getElementById('r-'+clipId).textContent = ' rendering…';
+  const body = { start: parseFloat(document.getElementById('s-'+clipId).value),
+                 end: parseFloat(document.getElementById('e-'+clipId).value),
+                 hook_title: document.getElementById('h-'+clipId).value };
+  const r = await fetch(`/api/jobs/${jobId}/clips/${clipId}/retrim`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  const j = await r.json();
+  document.getElementById('r-'+clipId).textContent = j.ok ? ' ✅ done — reload video' : (' ❌ ' + (j.error||'failed'));
+  if (j.ok) { const v = document.querySelector(`video[src="/api/jobs/${jobId}/clips/${clipId}/video"]`); if (v) v.load(); }
+}
+async function schedule(jobId, clipId) {
+  const body = { platform: document.getElementById('p-'+clipId).value, when: document.getElementById('w-'+clipId).value };
+  const r = await fetch(`/api/jobs/${jobId}/clips/${clipId}/schedule`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  const j = await r.json();
+  document.getElementById('sc-'+clipId).textContent = j.ok ? ' ✅ saved' : ' ❌ failed';
+}
+async function loadJobs() {
+  const r = await fetch('/api/jobs'); const js = await r.json();
+  document.getElementById('jobs').innerHTML = js.slice(0,8).map(j =>
+    `<div>${esc(j.job_id)} — ${esc(j.stage)} ${j.summary ? `· ${j.summary.clips.length} clips · ${esc(j.summary.title||'')}` : ''}</div>`).join('') || 'No jobs yet.';
+}
+loadJobs();
+</script>
+</body>
+</html>

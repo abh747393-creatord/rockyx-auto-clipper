@@ -1,0 +1,489 @@
+{
+  "start": 29.66,
+  "end": 65.05,
+  "text": "So when humans create a simulation, so it's faceX and Tesla, we create simulations all time. Especially for the rocket, you have to run a lot of simulations to understand what's going to happen because you can't really test the rocket until it goes to space. And you want it to work. So you have to simulate transsonic, supersonic, supersonic, supersonic I sent, and then coming back to via heating and all those are going to be simulated.",
+  "words": [
+    {
+      "word": "So",
+      "start": 29.66,
+      "end": 29.96,
+      "probability": 0.943
+    },
+    {
+      "word": "when",
+      "start": 29.96,
+      "end": 30.16,
+      "probability": 0.958
+    },
+    {
+      "word": "humans",
+      "start": 30.16,
+      "end": 31.12,
+      "probability": 0.903
+    },
+    {
+      "word": "create",
+      "start": 31.12,
+      "end": 31.88,
+      "probability": 0.918
+    },
+    {
+      "word": "a",
+      "start": 31.88,
+      "end": 32.02,
+      "probability": 0.737
+    },
+    {
+      "word": "simulation,",
+      "start": 32.02,
+      "end": 32.34,
+      "probability": 0.998
+    },
+    {
+      "word": "so",
+      "start": 32.48,
+      "end": 32.58,
+      "probability": 0.972
+    },
+    {
+      "word": "it's",
+      "start": 32.58,
+      "end": 32.72,
+      "probability": 0.949
+    },
+    {
+      "word": "faceX",
+      "start": 32.72,
+      "end": 33.12,
+      "probability": 0.259
+    },
+    {
+      "word": "and",
+      "start": 33.12,
+      "end": 33.28,
+      "probability": 0.958
+    },
+    {
+      "word": "Tesla,",
+      "start": 33.28,
+      "end": 33.58,
+      "probability": 0.816
+    },
+    {
+      "word": "we",
+      "start": 33.9,
+      "end": 34.44,
+      "probability": 0.996
+    },
+    {
+      "word": "create",
+      "start": 34.44,
+      "end": 34.68,
+      "probability": 0.982
+    },
+    {
+      "word": "simulations",
+      "start": 34.68,
+      "end": 35.1,
+      "probability": 0.98
+    },
+    {
+      "word": "all",
+      "start": 35.1,
+      "end": 35.4,
+      "probability": 0.997
+    },
+    {
+      "word": "time.",
+      "start": 35.4,
+      "end": 35.68,
+      "probability": 0.104
+    },
+    {
+      "word": "Especially",
+      "start": 36.44,
+      "end": 36.9,
+      "probability": 0.663
+    },
+    {
+      "word": "for",
+      "start": 36.9,
+      "end": 37.12,
+      "probability": 0.983
+    },
+    {
+      "word": "the",
+      "start": 37.12,
+      "end": 37.2,
+      "probability": 0.991
+    },
+    {
+      "word": "rocket,",
+      "start": 37.2,
+      "end": 37.44,
+      "probability": 0.978
+    },
+    {
+      "word": "you",
+      "start": 37.68,
+      "end": 37.68,
+      "probability": 0.987
+    },
+    {
+      "word": "have",
+      "start": 37.68,
+      "end": 39.2,
+      "probability": 0.686
+    },
+    {
+      "word": "to",
+      "start": 39.62,
+      "end": 41.08,
+      "probability": 0.994
+    },
+    {
+      "word": "run",
+      "start": 41.08,
+      "end": 41.44,
+      "probability": 0.995
+    },
+    {
+      "word": "a",
+      "start": 41.44,
+      "end": 41.6,
+      "probability": 0.99
+    },
+    {
+      "word": "lot",
+      "start": 41.6,
+      "end": 41.78,
+      "probability": 0.999
+    },
+    {
+      "word": "of",
+      "start": 41.78,
+      "end": 41.98,
+      "probability": 0.993
+    },
+    {
+      "word": "simulations",
+      "start": 41.98,
+      "end": 42.48,
+      "probability": 0.996
+    },
+    {
+      "word": "to",
+      "start": 42.48,
+      "end": 43.18,
+      "probability": 0.953
+    },
+    {
+      "word": "understand",
+      "start": 43.18,
+      "end": 43.68,
+      "probability": 0.994
+    },
+    {
+      "word": "what's",
+      "start": 43.68,
+      "end": 43.96,
+      "probability": 0.953
+    },
+    {
+      "word": "going",
+      "start": 43.96,
+      "end": 44.04,
+      "probability": 0.823
+    },
+    {
+      "word": "to",
+      "start": 44.04,
+      "end": 44.1,
+      "probability": 0.99
+    },
+    {
+      "word": "happen",
+      "start": 44.1,
+      "end": 44.36,
+      "probability": 0.995
+    },
+    {
+      "word": "because",
+      "start": 44.36,
+      "end": 44.72,
+      "probability": 0.686
+    },
+    {
+      "word": "you",
+      "start": 44.72,
+      "end": 44.86,
+      "probability": 0.998
+    },
+    {
+      "word": "can't",
+      "start": 44.86,
+      "end": 45.08,
+      "probability": 0.996
+    },
+    {
+      "word": "really",
+      "start": 45.08,
+      "end": 45.26,
+      "probability": 0.991
+    },
+    {
+      "word": "test",
+      "start": 45.26,
+      "end": 45.56,
+      "probability": 0.998
+    },
+    {
+      "word": "the",
+      "start": 45.56,
+      "end": 45.74,
+      "probability": 0.995
+    },
+    {
+      "word": "rocket",
+      "start": 45.74,
+      "end": 46.0,
+      "probability": 0.999
+    },
+    {
+      "word": "until",
+      "start": 46.0,
+      "end": 46.96,
+      "probability": 0.983
+    },
+    {
+      "word": "it",
+      "start": 46.96,
+      "end": 47.08,
+      "probability": 0.999
+    },
+    {
+      "word": "goes",
+      "start": 47.08,
+      "end": 47.18,
+      "probability": 0.994
+    },
+    {
+      "word": "to",
+      "start": 47.18,
+      "end": 47.34,
+      "probability": 0.967
+    },
+    {
+      "word": "space.",
+      "start": 47.34,
+      "end": 47.58,
+      "probability": 0.989
+    },
+    {
+      "word": "And",
+      "start": 48.56,
+      "end": 48.62,
+      "probability": 0.842
+    },
+    {
+      "word": "you",
+      "start": 48.62,
+      "end": 48.72,
+      "probability": 0.983
+    },
+    {
+      "word": "want",
+      "start": 48.72,
+      "end": 48.82,
+      "probability": 0.827
+    },
+    {
+      "word": "it",
+      "start": 48.82,
+      "end": 48.92,
+      "probability": 0.995
+    },
+    {
+      "word": "to",
+      "start": 48.92,
+      "end": 49.02,
+      "probability": 1.0
+    },
+    {
+      "word": "work.",
+      "start": 49.02,
+      "end": 49.2,
+      "probability": 0.999
+    },
+    {
+      "word": "So",
+      "start": 49.9,
+      "end": 50.0,
+      "probability": 0.887
+    },
+    {
+      "word": "you",
+      "start": 50.0,
+      "end": 50.06,
+      "probability": 0.942
+    },
+    {
+      "word": "have",
+      "start": 50.06,
+      "end": 50.14,
+      "probability": 0.996
+    },
+    {
+      "word": "to",
+      "start": 50.14,
+      "end": 50.64,
+      "probability": 0.963
+    },
+    {
+      "word": "simulate",
+      "start": 50.64,
+      "end": 51.04,
+      "probability": 0.981
+    },
+    {
+      "word": "transsonic,",
+      "start": 51.23,
+      "end": 53.91,
+      "probability": 0.516
+    },
+    {
+      "word": "supersonic,",
+      "start": 53.99,
+      "end": 55.23,
+      "probability": 0.746
+    },
+    {
+      "word": "supersonic,",
+      "start": 55.39,
+      "end": 55.39,
+      "probability": 0.858
+    },
+    {
+      "word": "supersonic",
+      "start": 55.39,
+      "end": 56.05,
+      "probability": 0.714
+    },
+    {
+      "word": "I",
+      "start": 56.05,
+      "end": 56.83,
+      "probability": 0.138
+    },
+    {
+      "word": "sent,",
+      "start": 57.02,
+      "end": 58.72,
+      "probability": 0.78
+    },
+    {
+      "word": "and",
+      "start": 58.9,
+      "end": 59.08,
+      "probability": 0.905
+    },
+    {
+      "word": "then",
+      "start": 59.08,
+      "end": 59.16,
+      "probability": 0.985
+    },
+    {
+      "word": "coming",
+      "start": 59.16,
+      "end": 59.4,
+      "probability": 0.972
+    },
+    {
+      "word": "back",
+      "start": 59.4,
+      "end": 59.68,
+      "probability": 0.998
+    },
+    {
+      "word": "to",
+      "start": 59.68,
+      "end": 60.26,
+      "probability": 0.489
+    },
+    {
+      "word": "via",
+      "start": 60.26,
+      "end": 60.44,
+      "probability": 0.072
+    },
+    {
+      "word": "heating",
+      "start": 60.44,
+      "end": 60.84,
+      "probability": 0.888
+    },
+    {
+      "word": "and",
+      "start": 60.84,
+      "end": 61.62,
+      "probability": 0.717
+    },
+    {
+      "word": "all",
+      "start": 61.62,
+      "end": 62.92,
+      "probability": 0.525
+    },
+    {
+      "word": "those",
+      "start": 63.21,
+      "end": 63.39,
+      "probability": 0.481
+    },
+    {
+      "word": "are",
+      "start": 63.39,
+      "end": 64.55,
+      "probability": 0.253
+    },
+    {
+      "word": "going",
+      "start": 64.55,
+      "end": 64.63,
+      "probability": 0.89
+    },
+    {
+      "word": "to",
+      "start": 64.63,
+      "end": 64.69,
+      "probability": 0.997
+    },
+    {
+      "word": "be",
+      "start": 64.69,
+      "end": 65.05,
+      "probability": 0.988
+    },
+    {
+      "word": "simulated.",
+      "start": 65.05,
+      "end": 65.05,
+      "probability": 0.755
+    }
+  ],
+  "heuristic_score": 43.0,
+  "heuristic_reason": "question-style opening, complete closing thought",
+  "score": 43.0,
+  "score_source": "heuristic",
+  "id": "clip01",
+  "file": "/tmp/rockyx-qa-uucm5yqf/e2e-clipvault-heuristic/job-sim/clips/clip01/clip01.mp4",
+  "srt": "/tmp/rockyx-qa-uucm5yqf/e2e-clipvault-heuristic/job-sim/clips/clip01/clip01.srt",
+  "ass": "/tmp/rockyx-qa-uucm5yqf/e2e-clipvault-heuristic/job-sim/clips/clip01/clip01.ass",
+  "split_screen": false,
+  "tracking": {
+    "hasTwoSpeakers": false,
+    "avgX": 0.688,
+    "avgFw": 0.139
+  }
+}

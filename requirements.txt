@@ -1,0 +1,14 @@
+# Rocky x Auto-Clipper — Python dependencies (pip install -r requirements.txt)
+# ffmpeg must be installed separately (system package, see README).
+# Python 3.10+ on Linux/macOS/Windows. CPU-only; no GPU needed.
+faster-whisper>=1.0.0
+onnxruntime>=1.17.0
+opencv-python-headless>=4.8.0
+numpy>=1.26
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart>=0.0.9
+yt-dlp>=2024.08.01
+scikit-learn>=1.4.0
+joblib>=1.3.0
+pillow>=10.0.0

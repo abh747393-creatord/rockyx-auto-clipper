@@ -1,0 +1,443 @@
+{
+  "start": 0.0,
+  "end": 31.9,
+  "text": "with the intensity of conflict going on. Do you worry about nuclear war? I think we shouldn't discount the possibility of nuclear war. It is a civilizational threat. Right now, I can be wrong, but I think the current probability of nuclear war is quite low, but there are a lot of nukes pointed at us. So, and we have a lot of nukes pointed at other people.",
+  "words": [
+    {
+      "word": "with",
+      "start": 0.0,
+      "end": 0.1,
+      "probability": 0.569
+    },
+    {
+      "word": "the",
+      "start": 0.1,
+      "end": 0.2,
+      "probability": 0.995
+    },
+    {
+      "word": "intensity",
+      "start": 0.2,
+      "end": 0.62,
+      "probability": 0.983
+    },
+    {
+      "word": "of",
+      "start": 0.62,
+      "end": 0.86,
+      "probability": 0.997
+    },
+    {
+      "word": "conflict",
+      "start": 0.86,
+      "end": 1.22,
+      "probability": 0.996
+    },
+    {
+      "word": "going",
+      "start": 1.22,
+      "end": 1.46,
+      "probability": 0.96
+    },
+    {
+      "word": "on.",
+      "start": 1.46,
+      "end": 1.76,
+      "probability": 0.998
+    },
+    {
+      "word": "Do",
+      "start": 2.18,
+      "end": 2.24,
+      "probability": 0.969
+    },
+    {
+      "word": "you",
+      "start": 2.24,
+      "end": 2.3,
+      "probability": 0.998
+    },
+    {
+      "word": "worry",
+      "start": 2.3,
+      "end": 2.56,
+      "probability": 0.998
+    },
+    {
+      "word": "about",
+      "start": 2.56,
+      "end": 2.88,
+      "probability": 0.99
+    },
+    {
+      "word": "nuclear",
+      "start": 2.88,
+      "end": 3.08,
+      "probability": 0.983
+    },
+    {
+      "word": "war?",
+      "start": 3.08,
+      "end": 3.42,
+      "probability": 0.996
+    },
+    {
+      "word": "I",
+      "start": 5.56,
+      "end": 5.7,
+      "probability": 0.246
+    },
+    {
+      "word": "think",
+      "start": 5.7,
+      "end": 5.8,
+      "probability": 0.994
+    },
+    {
+      "word": "we",
+      "start": 5.8,
+      "end": 5.9,
+      "probability": 0.995
+    },
+    {
+      "word": "shouldn't",
+      "start": 5.9,
+      "end": 6.08,
+      "probability": 0.989
+    },
+    {
+      "word": "discount",
+      "start": 6.08,
+      "end": 6.38,
+      "probability": 0.541
+    },
+    {
+      "word": "the",
+      "start": 6.38,
+      "end": 6.62,
+      "probability": 0.985
+    },
+    {
+      "word": "possibility",
+      "start": 6.62,
+      "end": 7.12,
+      "probability": 0.988
+    },
+    {
+      "word": "of",
+      "start": 7.12,
+      "end": 7.3,
+      "probability": 0.998
+    },
+    {
+      "word": "nuclear",
+      "start": 7.3,
+      "end": 7.42,
+      "probability": 0.995
+    },
+    {
+      "word": "war.",
+      "start": 7.42,
+      "end": 7.8,
+      "probability": 0.998
+    },
+    {
+      "word": "It",
+      "start": 9.05,
+      "end": 9.33,
+      "probability": 0.94
+    },
+    {
+      "word": "is",
+      "start": 9.33,
+      "end": 9.47,
+      "probability": 0.997
+    },
+    {
+      "word": "a",
+      "start": 9.47,
+      "end": 9.63,
+      "probability": 0.965
+    },
+    {
+      "word": "civilizational",
+      "start": 9.63,
+      "end": 10.23,
+      "probability": 0.902
+    },
+    {
+      "word": "threat.",
+      "start": 10.23,
+      "end": 10.47,
+      "probability": 0.929
+    },
+    {
+      "word": "Right",
+      "start": 15.81,
+      "end": 16.29,
+      "probability": 0.931
+    },
+    {
+      "word": "now,",
+      "start": 16.29,
+      "end": 16.59,
+      "probability": 0.999
+    },
+    {
+      "word": "I",
+      "start": 16.79,
+      "end": 17.15,
+      "probability": 0.923
+    },
+    {
+      "word": "can",
+      "start": 17.15,
+      "end": 17.25,
+      "probability": 0.75
+    },
+    {
+      "word": "be",
+      "start": 17.25,
+      "end": 17.37,
+      "probability": 0.995
+    },
+    {
+      "word": "wrong,",
+      "start": 17.37,
+      "end": 17.55,
+      "probability": 1.0
+    },
+    {
+      "word": "but",
+      "start": 17.69,
+      "end": 17.75,
+      "probability": 0.99
+    },
+    {
+      "word": "I",
+      "start": 17.75,
+      "end": 18.37,
+      "probability": 0.946
+    },
+    {
+      "word": "think",
+      "start": 18.37,
+      "end": 18.51,
+      "probability": 0.999
+    },
+    {
+      "word": "the",
+      "start": 18.51,
+      "end": 18.73,
+      "probability": 0.818
+    },
+    {
+      "word": "current",
+      "start": 18.73,
+      "end": 19.55,
+      "probability": 0.978
+    },
+    {
+      "word": "probability",
+      "start": 19.55,
+      "end": 20.23,
+      "probability": 0.979
+    },
+    {
+      "word": "of",
+      "start": 20.23,
+      "end": 20.53,
+      "probability": 0.998
+    },
+    {
+      "word": "nuclear",
+      "start": 20.53,
+      "end": 20.83,
+      "probability": 0.985
+    },
+    {
+      "word": "war",
+      "start": 20.83,
+      "end": 21.09,
+      "probability": 0.993
+    },
+    {
+      "word": "is",
+      "start": 21.09,
+      "end": 21.25,
+      "probability": 0.989
+    },
+    {
+      "word": "quite",
+      "start": 21.25,
+      "end": 21.51,
+      "probability": 0.993
+    },
+    {
+      "word": "low,",
+      "start": 21.51,
+      "end": 21.73,
+      "probability": 0.999
+    },
+    {
+      "word": "but",
+      "start": 22.55,
+      "end": 23.77,
+      "probability": 0.996
+    },
+    {
+      "word": "there",
+      "start": 23.93,
+      "end": 24.05,
+      "probability": 0.996
+    },
+    {
+      "word": "are",
+      "start": 24.05,
+      "end": 24.17,
+      "probability": 0.992
+    },
+    {
+      "word": "a",
+      "start": 24.17,
+      "end": 24.27,
+      "probability": 0.995
+    },
+    {
+      "word": "lot",
+      "start": 24.27,
+      "end": 24.37,
+      "probability": 0.996
+    },
+    {
+      "word": "of",
+      "start": 24.37,
+      "end": 24.47,
+      "probability": 0.998
+    },
+    {
+      "word": "nukes",
+      "start": 24.47,
+      "end": 24.63,
+      "probability": 0.655
+    },
+    {
+      "word": "pointed",
+      "start": 24.63,
+      "end": 24.87,
+      "probability": 0.953
+    },
+    {
+      "word": "at",
+      "start": 24.87,
+      "end": 25.03,
+      "probability": 0.617
+    },
+    {
+      "word": "us.",
+      "start": 25.03,
+      "end": 25.27,
+      "probability": 1.0
+    },
+    {
+      "word": "So,",
+      "start": 26.61,
+      "end": 26.61,
+      "probability": 0.366
+    },
+    {
+      "word": "and",
+      "start": 27.09,
+      "end": 27.43,
+      "probability": 0.763
+    },
+    {
+      "word": "we",
+      "start": 27.43,
+      "end": 27.53,
+      "probability": 0.991
+    },
+    {
+      "word": "have",
+      "start": 27.53,
+      "end": 27.61,
+      "probability": 0.971
+    },
+    {
+      "word": "a",
+      "start": 27.61,
+      "end": 27.67,
+      "probability": 0.995
+    },
+    {
+      "word": "lot",
+      "start": 27.67,
+      "end": 27.77,
+      "probability": 0.998
+    },
+    {
+      "word": "of",
+      "start": 27.77,
+      "end": 27.91,
+      "probability": 0.999
+    },
+    {
+      "word": "nukes",
+      "start": 27.91,
+      "end": 27.99,
+      "probability": 0.996
+    },
+    {
+      "word": "pointed",
+      "start": 27.99,
+      "end": 28.23,
+      "probability": 0.954
+    },
+    {
+      "word": "at",
+      "start": 28.23,
+      "end": 28.39,
+      "probability": 0.955
+    },
+    {
+      "word": "other",
+      "start": 28.39,
+      "end": 28.51,
+      "probability": 0.996
+    },
+    {
+      "word": "people.",
+      "start": 28.51,
+      "end": 28.77,
+      "probability": 0.999
+    }
+  ],
+  "score": 90.0,
+  "score_source": "gemini",
+  "reason": "This clip immediately hooks with a direct question about nuclear war, followed by a strong statement about its civilizational threat, making it highly relevant and thought-provoking.",
+  "title": "Do You Worry About Nuclear War? A Civilizational Threat We Can't Discount",
+  "hook_title": "Do You Worry About Nuclear War?",
+  "hashtags": [
+    "nuclearwar",
+    "globalconflict",
+    "geopolitics",
+    "currentevents",
+    "civilizationalthreat",
+    "future",
+    "humanity",
+    "discussion"
+  ],
+  "broll_suggestion": "Stock footage of a mushroom cloud simulation or a world map highlighting potential conflict zones.",
+  "hook_score": 95,
+  "shareability_score": 85,
+  "id": "clip01",
+  "file": "/tmp/rockyx-qa-2qaf732i/e2e-clipvault-gemini/job-nuc/clips/clip01/clip01.mp4",
+  "srt": "/tmp/rockyx-qa-2qaf732i/e2e-clipvault-gemini/job-nuc/clips/clip01/clip01.srt",
+  "ass": "/tmp/rockyx-qa-2qaf732i/e2e-clipvault-gemini/job-nuc/clips/clip01/clip01.ass",
+  "split_screen": true,
+  "tracking": {
+    "hasTwoSpeakers": true,
+    "avgX": 0.628,
+    "avgFw": 0.138
+  }
+}
