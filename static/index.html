@@ -81,6 +81,11 @@
   <label>Caption font</label>
   <select id="font"><option value="">Style default</option></select>
   <div class="hint">22 free fonts included — they work on any computer, no install needed.</div>
+  <img id="font_preview" src="" alt="Font preview" style="display:none; width:100%; max-width:640px; border-radius:8px; margin-top:10px; border:1px solid #333;">
+  <details id="font_gallery"><summary>👁 Preview all fonts</summary>
+    <div id="font_grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px; margin-top:10px;"></div>
+    <div class="hint">Click a preview to pick that font.</div>
+  </details>
   <details><summary>Advanced</summary>
     <label>Whisper model (base = fast, small = more accurate)</label>
     <select id="model"><option value="base">base</option><option value="small">small</option><option value="tiny">tiny</option></select>
@@ -287,9 +292,11 @@ async function removeKey() {
   loadSettings();
 }
 loadSettings();
+let fontGroups = null;
 async function loadFonts() {
   try {
     const r = await fetch('/api/fonts'); const f = await r.json();
+    fontGroups = f.groups;
     const sel = document.getElementById('font');
     for (const [group, names] of f.groups) {
       const og = document.createElement('optgroup'); og.label = group;
@@ -298,6 +305,31 @@ async function loadFonts() {
     }
   } catch (e) { /* dropdown keeps "Style default" only */ }
 }
+function updateFontPreview() {
+  const f = document.getElementById('font').value;
+  const img = document.getElementById('font_preview');
+  if (!f) { img.style.display = 'none'; img.removeAttribute('src'); return; }
+  img.src = '/api/fonts/preview?name=' + encodeURIComponent(f);
+  img.style.display = 'block';
+}
+let gridBuilt = false;
+function buildFontGrid() {
+  if (gridBuilt || !fontGroups) return;
+  gridBuilt = true;
+  const grid = document.getElementById('font_grid');
+  for (const [group, names] of fontGroups) {
+    for (const n of names) {
+      const im = document.createElement('img');
+      im.src = '/api/fonts/preview?name=' + encodeURIComponent(n);
+      im.alt = n; im.title = n + ' — click to pick';
+      im.style.cssText = 'width:100%; border-radius:8px; border:1px solid #333; cursor:pointer;';
+      im.onclick = () => { document.getElementById('font').value = n; updateFontPreview(); document.getElementById('font_gallery').open = false; };
+      grid.appendChild(im);
+    }
+  }
+}
+document.getElementById('font').addEventListener('change', updateFontPreview);
+document.getElementById('font_gallery').addEventListener('toggle', (e) => { if (e.target.open) buildFontGrid(); });
 loadFonts();
 async function loadJobs() {
   const r = await fetch('/api/jobs'); const js = await r.json();

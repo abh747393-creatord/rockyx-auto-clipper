@@ -154,3 +154,6 @@ mistakes found, fix applied, retest result. Never fake a count.
 | 146 | 2026-11-10 15:14 | 22 bundled Google Fonts (OFL) | fonts-verify | PASS | all files valid TTF, nameID1 == registry, groups cover 22 once, total 2494 KB | - | - |
 | 147 | 2026-11-10 15:15 | elon-nuclear-clip01.mp4, font Bebas Neue vs default | e2e-font-render | PASS | .ass has Bebas Neue; pixel-diff at t=5.6 (active caption): bebas/default/no-fontsdir all differ; visual check shows Bebas caps. First t=5.0 check was vacuous (dead-air gap) — re-ran at 5.6 | - | - |
 | 148 | 2026-11-10 15:18 | localhost:8140 | fonts-api-smoke | PASS | /api/fonts 22 fonts in 4 groups; index has font dropdown; unknown font -> default; startJob sends font | - | - |
+| 149 | 2026-11-10 15:20 | all 22 bundled fonts | font-preview-render | PASS | 22/22 valid PNGs, all unique md5s, cache identical, unknown font raises, size 640x150 | - | - |
+| 150 | 2026-11-10 15:20 | localhost:8141 | font-preview-api-smoke | PASS | /api/fonts/preview 200 image/png 11006 B; unknown/no name -> 400; index has preview UI; version 0.1.4 | - | - |
+| 151 | 2026-11-10 15:21 | Bebas Neue, Luckiest Guy, Montserrat ExtraBold previews | font-preview-visual | PASS | Bebas tall condensed caps, Luckiest Guy rounded cartoon, Montserrat bold geometric — all correct, white + black outline on dark | - | - |

@@ -12,7 +12,7 @@ import threading
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 
 from . import config
 from . import settings as settings_mod
@@ -153,6 +153,17 @@ def list_fonts():
     """Bundled free caption fonts, grouped for the UI dropdown."""
     return {"groups": [[g, fs] for g, fs in config.FONT_GROUPS],
             "fonts": list(config.FONTS)}
+
+
+@app.get("/api/fonts/preview")
+def font_preview(name: str = ""):
+    """PNG preview of the sample line in one bundled font (for the picker)."""
+    from . import preview as preview_mod
+    try:
+        data = preview_mod.render_font_preview(name)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    return Response(content=data, media_type="image/png")
 
 
 @app.get("/api/jobs")

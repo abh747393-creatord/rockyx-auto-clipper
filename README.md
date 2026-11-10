@@ -115,7 +115,14 @@ plain download when impersonation is unavailable, errors are shown in
 plain language, and the UI has a progress stepper. Verified from a clean
 virtualenv install before release.
 
-**v0.1.3 (2026-11-10, prepared — NOT pushed yet):** AI Settings in the web UI.
+**v0.1.4 (2026-11-10, prepared — NOT pushed yet):** font previews (Rocky:
+"fonts preview bhi hon"). The font picker now shows a live preview of the
+picked font under the dropdown, plus a "👁 Preview all fonts" gallery of
+all 22 fonts — click any preview to pick it. Previews are rendered on
+demand with Pillow from the bundled TTFs (`GET /api/fonts/preview?name=...`),
+so what you see is exactly what the clips use.
+
+**v0.1.3 (2026-11-10, PUSHED ~15:22 PKT, commit 045ce7b):** AI Settings in the web UI.
 Rocky asked for an option to set the AI API key: the UI now has an
 "🤖 AI Settings" card — paste a Gemini API key, pick the default scorer,
 save, and test the key with one click. The key is saved only on that
